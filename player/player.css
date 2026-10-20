@@ -433,7 +433,7 @@ body {
 }
 .tp-btn--speed[aria-expanded='true'],
 .tp-btn.is-on[data-act='chapters'] {
-  background: var(--fill-2);
+  background: var(--fill);
   color: #fff;
 }
 
@@ -706,21 +706,21 @@ body {
   background: var(--fill-2);
 }
 
-/* chapter list: titles and times */
+/* chapter list: the same rows as the speed menu; a tick on the current chapter */
 .tp-panel {
-  right: 1rem;
-  bottom: calc(var(--bar-gap) + 0.25rem);
   display: flex;
   flex-direction: column;
-  width: min(20rem, 100% - 2rem);
-  max-height: calc(100% - var(--bar-gap) - 1.25rem);
-  transform-origin: 85% 100%;
+  min-width: 12rem;
+  max-width: min(20rem, 100% - 20px);
+  max-height: calc(100% - var(--bar-gap) - 1rem);
+  padding: 0.3rem;
+  transform-origin: 50% 100%;
 }
 .tp-chlist {
   flex: 1 1 auto;
   min-height: 0;
   margin: 0;
-  padding: 0.35rem;
+  padding: 0;
   list-style: none;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -728,85 +728,60 @@ body {
 .tp-ch {
   position: relative;
 }
-.tp-ch-main {
+/* columns: tick · title · quiz · time */
+.tp-ch-main.tp-menu-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 0.75rem;
-  width: 100%;
-  min-height: 2.6rem;
-  padding: 0.25rem 0.7rem;
-  border: 0;
-  border-radius: 0.5rem;
-  background: none;
-  color: var(--soft);
-  font-size: 0.9375rem;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  grid-template-columns: 1.05rem minmax(0, 1fr) 2.6rem;
+  column-gap: 0.45rem;
+  padding-right: 0.7rem;
 }
-.tp-ch-main:hover {
-  background: var(--fill);
-  color: var(--text);
+.tp-ch:has(.tp-ch-quiz) .tp-ch-main {
+  grid-template-columns: 1.05rem minmax(0, 1fr) 1rem 2.6rem;
 }
-.tp-ch-main:focus-visible {
-  outline-offset: -3px;
+.tp-ch:has(.tp-ch-quiz) .tp-ch-time {
+  grid-column: 4;
+}
+.tp-ch.is-current .tp-ch-main > .tp-i {
+  opacity: 1;
 }
 .tp-ch-title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tp-ch:has(.tp-ch-quiz) .tp-ch-title {
-  padding-right: 2.2rem;
-}
 .tp-ch-time {
-  font-size: 0.8125rem;
   color: var(--dim);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.tp-ch.is-current .tp-ch-main {
-  background: var(--fill-2);
-  color: var(--text);
-}
-.tp-ch-bar {
-  position: absolute;
-  left: 0.7rem;
-  right: 0.7rem;
-  bottom: 0.3rem;
-  display: none;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--fill-2);
-  pointer-events: none;
-}
-.tp-ch.is-current .tp-ch-bar {
-  display: block;
-}
-.tp-ch-bar > i {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.85);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-}
-/* the quiz in a chapter row: a question mark, a tick once answered */
+/* the quiz: a small question mark in its own column, fainter once answered */
 .tp-ch-quiz {
   position: absolute;
   top: 50%;
-  right: 3.3rem;
-  margin-top: -1rem;
-  width: 2rem;
-  height: 2rem;
+  right: calc(0.7rem + 2.6rem + 0.45rem - 0.35rem);
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  margin-top: -0.85rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--soft);
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
 }
-.tp-ch-quiz > .tp-i + .tp-i,
-.tp-ch-quiz.is-done > .tp-i:first-child {
-  display: none;
+.tp-ch-quiz > .tp-i {
+  width: 1rem;
+  height: 1rem;
 }
-.tp-ch-quiz.is-done > .tp-i + .tp-i {
-  display: block;
+.tp-ch-quiz:hover {
+  color: var(--text);
+  background: var(--fill);
+}
+.tp-ch-quiz.is-done {
+  color: var(--faint);
 }
 
 /* ---------------------------------------------------------------- icon buttons */

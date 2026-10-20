@@ -86,7 +86,6 @@ const ICON = {
   full: svg('<path d="M14 4.4h5.6V10M19.6 4.4l-6 6M10 19.6H4.4V14M4.4 19.6l6-6"/>'),
   unfull: svg('<path d="M19.6 10H14V4.4M14 10l6-6M4.4 14H10v5.6M10 14l-6 6"/>'),
   check: svg('<path d="m5.8 12.4 4 4 8.4-8.6"/>'),
-  checkCircle: svg('<circle cx="12" cy="12" r="8.6"/><path d="m8.3 12.3 2.6 2.6 4.9-5.1"/>'),
   quiz: svg('<circle cx="12" cy="12" r="8.6"/><path d="M9.7 9.7a2.4 2.4 0 1 1 3.3 2.2c-.6.3-1 .8-1 1.5v.4"/><circle class="tp-solid" cx="12" cy="16.5" r="1.1"/>'),
   eye: svg('<path d="M2.6 12S6 5.6 12 5.6 21.4 12 21.4 12 18 18.4 12 18.4 2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.9"/>'),
   eyeOff: svg('<path d="M2.6 12S6 5.6 12 5.6 21.4 12 21.4 12 18 18.4 12 18.4 2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.9"/><path d="m4.2 4.2 15.6 15.6"/>'),
@@ -120,12 +119,8 @@ function stageHTML({ video, chapters, total, quizzes }) {
     .map((c, i) => {
       const q = quizzes.has(c.n);
       return `<li class="tp-ch" data-i="${i}">
-        <button class="tp-ch-main" data-seek="${i}" type="button">
-          <span class="tp-ch-title">${esc(c.title)}</span>
-          <span class="tp-ch-time">${fmtTime(c.start)}</span>
-        </button>
-        ${q ? `<button class="tp-icon tp-ch-quiz" data-quiz="${c.n}" type="button" aria-label="第${esc(c.label)}节的小题">${ICON.quiz}${ICON.checkCircle}</button>` : ''}
-        <i class="tp-ch-bar"><i></i></i>
+        <button class="tp-menu-item tp-ch-main" data-seek="${i}" type="button">${ICON.check}<span class="tp-ch-title">${esc(c.title)}</span><span class="tp-ch-time">${fmtTime(c.start)}</span></button>
+        ${q ? `<button class="tp-ch-quiz" data-quiz="${c.n}" type="button" aria-label="第${esc(c.label)}节的小题">${ICON.quiz}</button>` : ''}
       </li>`;
     })
     .join('');
@@ -358,6 +353,7 @@ export async function startPlayer(cfg = {}) {
     draw();
     if (hover.on) hover.dirty = true;
     if (menuOpen) placeMenu();
+    if (panelOpen) placePanel();
   }
   let lastDpr = window.devicePixelRatio || 1;
   new ResizeObserver(layout).observe(stage);
@@ -636,9 +632,6 @@ export async function startPlayer(cfg = {}) {
       rowEls.forEach((r, i) => r.classList.toggle('is-current', i === ci));
       setMediaMeta(label(chapters[ci]));
     }
-    const c = chapters[ci];
-    const bar = rowEls[ci] && rowEls[ci].querySelector('.tp-ch-bar > i');
-    if (bar) bar.style.transform = `scaleX(${clamp((t - c.start) / (c.end - c.start))})`;
   }
   function positionHandle() {
     R.handle.style.transform = `translateX(${(t / total) * trackW}px)`;
@@ -800,13 +793,16 @@ export async function startPlayer(cfg = {}) {
   });
 
   // ---------------------------------------------------------------- menus & panel
-  function placeMenu() {
-    const sr = stage.getBoundingClientRect(), br = R.speedBtn.getBoundingClientRect();
-    const w = R.speedMenu.offsetWidth;
+  // a pop-up sits just above its button, inside the picture
+  function placePop(el, btn) {
+    const sr = stage.getBoundingClientRect(), br = btn.getBoundingClientRect();
+    const w = el.offsetWidth;
     const x = clamp(br.left + br.width / 2 - sr.left - w / 2, 10, sr.width - w - 10);
-    R.speedMenu.style.left = `${Math.round(x)}px`;
-    R.speedMenu.style.bottom = `${Math.round(sr.bottom - R.controls.getBoundingClientRect().top + 10)}px`;
+    el.style.left = `${Math.round(x)}px`;
+    el.style.bottom = `${Math.round(sr.bottom - br.top + 8)}px`;
   }
+  const placeMenu = () => placePop(R.speedMenu, R.speedBtn);
+  const placePanel = () => placePop(R.panel, R.chBtn);
   function openMenu() {
     if (panelOpen) closePanel(false);
     menuOpen = true;
@@ -828,6 +824,7 @@ export async function startPlayer(cfg = {}) {
   function openPanel() {
     if (menuOpen) closeMenu();
     panelOpen = true;
+    placePanel();
     R.panel.classList.add('is-on');
     R.chBtn.setAttribute('aria-expanded', 'true');
     R.chBtn.classList.add('is-on');
