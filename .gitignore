@@ -1,0 +1,13 @@
+node_modules/
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+*.opus
+*.mp4
+*.mov
+*.webm
+/t-test/build/
+/t-test/out/
+.DS_Store
