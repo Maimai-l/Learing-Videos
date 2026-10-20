@@ -86,37 +86,29 @@ const ICON = {
   full: svg('<path d="M14 4.4h5.6V10M19.6 4.4l-6 6M10 19.6H4.4V14M4.4 19.6l6-6"/>'),
   unfull: svg('<path d="M19.6 10H14V4.4M14 10l6-6M4.4 14H10v5.6M10 14l-6 6"/>'),
   check: svg('<path d="m5.8 12.4 4 4 8.4-8.6"/>'),
+  checkCircle: svg('<circle cx="12" cy="12" r="8.6"/><path d="m8.3 12.3 2.6 2.6 4.9-5.1"/>'),
+  quiz: svg('<circle cx="12" cy="12" r="8.6"/><path d="M9.7 9.7a2.4 2.4 0 1 1 3.3 2.2c-.6.3-1 .8-1 1.5v.4"/><circle class="tp-solid" cx="12" cy="16.5" r="1.1"/>'),
+  eye: svg('<path d="M2.6 12S6 5.6 12 5.6 21.4 12 21.4 12 18 18.4 12 18.4 2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.9"/>'),
+  eyeOff: svg('<path d="M2.6 12S6 5.6 12 5.6 21.4 12 21.4 12 18 18.4 12 18.4 2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.9"/><path d="m4.2 4.2 15.6 15.6"/>'),
+  close: svg('<path d="m7 7 10 10m0-10L7 17"/>'),
   chevron: svg('<path d="m10 7.4 4.6 4.6-4.6 4.6"/>'),
   left: svg('<path d="m14 7.4-4.6 4.6 4.6 4.6"/>'),
 };
 
 // ---------------------------------------------------------------- markup
+// No words in the interface: every control is an icon (with an aria-label for screen
+// readers). Text on screen comes from the video itself: its title, chapter titles,
+// quiz questions and answers, and the times.
 function shellHTML() {
   return `
 <div class="tp-stage" data-r="stage">
   <canvas class="tp-canvas" data-r="canvas" aria-label="视频画面"></canvas>
   <div class="tp-loading" data-r="loading" aria-label="正在加载"><div class="tp-spinner"></div></div>
 </div>
-<aside class="tp-side" data-r="modalWrap" aria-label="小题">
-  <div class="tp-side-inner" data-r="modal" role="region" aria-labelledby="tp-q-title" tabindex="-1">
-    <div class="tp-side-head">
-      <div class="tp-q-kicker" data-r="qKicker"></div>
-      <button class="tp-link" data-act="closeQuiz" type="button">收起</button>
-    </div>
-    <h2 class="tp-q-title" id="tp-q-title" data-r="qTitle"></h2>
-    <div class="tp-q-body" data-r="qBody"></div>
-    <div class="tp-q-actions">
-      <button class="tp-link" data-act="reveal" data-r="qReveal" type="button">显示答案</button>
-      <button class="tp-link tp-link--strong" data-act="resume" type="button">继续播放</button>
-      <div class="tp-q-pager" data-r="qPager"></div>
-    </div>
-  </div>
-</aside>
 <audio data-r="audio" preload="auto"></audio>`;
 }
 
 function stageHTML({ video, chapters, total, quizzes }) {
-  const nCh = cnNum(chapters.length);
   const segs = chapters
     .map((c, i) => `<div class="tp-seg" data-i="${i}" style="left:${(c.start / total) * 100}%;width:calc(${((c.end - c.start) / total) * 100}% - ${i + 1 < chapters.length ? 3 : 0}px)"><i class="tp-seg-hover"></i><i class="tp-seg-fill"></i></div>`)
     .join('');
@@ -129,35 +121,22 @@ function stageHTML({ video, chapters, total, quizzes }) {
       const q = quizzes.has(c.n);
       return `<li class="tp-ch" data-i="${i}">
         <button class="tp-ch-main" data-seek="${i}" type="button">
-          <span class="tp-ch-num">${esc(c.label)}</span>
           <span class="tp-ch-title">${esc(c.title)}</span>
           <span class="tp-ch-time">${fmtTime(c.start)}</span>
         </button>
-        ${q ? `<button class="tp-ch-quiz" data-quiz="${c.n}" type="button" aria-label="第${esc(c.label)}节的题目">${ICON.check}<span class="tp-ch-quiz-text">做题</span></button>` : ''}
+        ${q ? `<button class="tp-icon tp-ch-quiz" data-quiz="${c.n}" type="button" aria-label="第${esc(c.label)}节的小题">${ICON.quiz}${ICON.checkCircle}</button>` : ''}
         <i class="tp-ch-bar"><i></i></i>
       </li>`;
     })
     .join('');
-  const kbd = (k) => `<kbd>${k}</kbd>`;
-  const meta = [chapters.length > 1 ? `${nCh}节` : '', fmtSpoken(total)].filter(Boolean).join(' · ');
   return `
 <div class="tp-scrim" aria-hidden="true"></div>
-<div class="tp-osd" data-r="osd" role="status" aria-live="polite"></div>
 
-<div class="tp-card" data-r="card" role="status" aria-live="polite">
-  <button class="tp-card-go" data-r="cardGo" type="button"><span data-r="cardTitle"></span>${ICON.chevron}</button>
-  <i class="tp-card-life" data-r="cardLife"></i>
-</div>
+<button class="tp-icon tp-card" data-r="card" type="button" aria-label="小题">${ICON.quiz}<i class="tp-card-life" data-r="cardLife"></i></button>
 
 <div class="tp-controls" data-r="controls">
   <div class="tp-row">
-    <button class="tp-meta" data-act="chapters" data-r="chLabel" type="button" aria-label="章节列表">
-      ${video.title ? `<span class="tp-meta-title">${esc(video.title)}</span>` : ''}
-      <span class="tp-meta-ch"><span class="tp-meta-ch-text" data-r="chLabelText"></span>${ICON.chevron}</span>
-    </button>
-    <div class="tp-transport">
-      <button class="tp-btn tp-btn--play" data-act="play" data-r="playBtn" type="button" aria-label="播放">${ICON.play}${ICON.pause}${ICON.replay}</button>
-    </div>
+    <button class="tp-btn tp-btn--play" data-act="play" data-r="playBtn" type="button" aria-label="播放">${ICON.play}${ICON.pause}${ICON.replay}</button>
     <div class="tp-group">
       <div class="tp-volume" data-r="volume">
         <div class="tp-vol" data-r="vol" role="slider" tabindex="0" aria-label="音量" aria-valuemin="0" aria-valuemax="100">
@@ -166,8 +145,8 @@ function stageHTML({ video, chapters, total, quizzes }) {
         <button class="tp-btn" data-act="mute" data-r="muteBtn" type="button" aria-label="静音">${ICON.vol}</button>
       </div>
       <button class="tp-btn tp-btn--subs" data-act="subs" data-r="subsBtn" type="button" aria-label="字幕" aria-pressed="true">${ICON.subs}</button>
-      <button class="tp-btn tp-btn--speed" data-act="speed" data-r="speedBtn" type="button" aria-label="播放速度" aria-haspopup="menu" aria-expanded="false" data-tip="播放速度" data-keys="[ ]">${ICON.speed}<span data-r="speedText">1×</span></button>
-      <button class="tp-btn" data-act="chapters" data-r="chBtn" type="button" aria-label="章节" aria-expanded="false" data-tip="章节" data-keys="1–9">${ICON.list}</button>
+      <button class="tp-btn tp-btn--speed" data-act="speed" data-r="speedBtn" type="button" aria-label="播放速度" aria-haspopup="menu" aria-expanded="false">${ICON.speed}<span data-r="speedText">1×</span></button>
+      <button class="tp-btn" data-act="chapters" data-r="chBtn" type="button" aria-label="章节" aria-expanded="false">${ICON.list}</button>
       <button class="tp-btn tp-btn--swap" data-act="fullscreen" data-r="fsBtn" type="button" aria-label="全屏">${ICON.full}${ICON.unfull}</button>
     </div>
   </div>
@@ -182,57 +161,35 @@ function stageHTML({ video, chapters, total, quizzes }) {
 <div class="tp-preview" data-r="preview" aria-hidden="true">
   <div class="tp-preview-frame" data-r="pframe"><canvas data-r="pcanvas"></canvas></div>
   <div class="tp-preview-time" data-r="ptime"></div>
-  <div class="tp-preview-ch" data-r="pch"></div>
 </div>
 
-<div class="tp-tip" data-r="tip" role="tooltip"></div>
-
 <div class="tp-menu" data-r="speedMenu" role="menu" aria-label="播放速度">
-  <div class="tp-menu-title">播放速度</div>
-  ${SPEEDS.map((r) => `<button class="tp-menu-item" role="menuitemradio" data-rate="${r}" type="button">${ICON.check}<span>${fmtRate(r)}</span>${r === 1 ? '<em>正常</em>' : ''}</button>`).join('')}
+  ${SPEEDS.map((r) => `<button class="tp-menu-item" role="menuitemradio" data-rate="${r}" type="button">${ICON.check}<span>${fmtRate(r)}</span></button>`).join('')}
 </div>
 
 <section class="tp-panel" data-r="panel" aria-label="章节">
-  <header class="tp-panel-head">
-    <h2>章节</h2>
-    <span class="tp-panel-meta">${meta}</span>
-  </header>
   <ol class="tp-chlist" data-r="chList">${rows}</ol>
-  <footer class="tp-panel-foot">
-    <button class="tp-menu-item" data-r="autoQuiz" role="menuitemcheckbox" aria-checked="false" type="button">${ICON.check}<span>到小题时暂停</span></button>
-  </footer>
 </section>
 
-<div class="tp-modal-wrap tp-keys-wrap" data-r="keysWrap">
-  <div class="tp-modal tp-keys" data-r="keys" role="dialog" aria-modal="true" aria-labelledby="tp-keys-title" tabindex="-1">
-    <h2 class="tp-q-title" id="tp-keys-title">键盘快捷键</h2>
-    <dl class="tp-keylist">
-      <div><dt>${kbd('空格')}${kbd('K')}</dt><dd>播放 / 暂停</dd></div>
-      <div><dt>${kbd('←')}${kbd('→')}</dt><dd>后退 / 前进 5 秒</dd></div>
-      <div><dt>${kbd('J')}${kbd('L')}</dt><dd>后退 / 前进 10 秒</dd></div>
-      <div><dt>${kbd('Shift')}${kbd('←')}${kbd('→')}</dt><dd>上一节 / 下一节</dd></div>
-      ${chapters.length > 1 ? `<div><dt>${kbd('1')}<span class="tp-kbd-dash">–</span>${kbd(String(Math.min(9, chapters.length)))}</dt><dd>跳到第一至第${cnNum(Math.min(9, chapters.length))}节</dd></div>` : ''}
-      <div><dt>${kbd('Home')}${kbd('End')}</dt><dd>开头 / 结尾</dd></div>
-      <div><dt>${kbd('[')}${kbd(']')}</dt><dd>减速 / 加速</dd></div>
-      <div><dt>${kbd('↑')}${kbd('↓')}</dt><dd>音量</dd></div>
-      <div><dt>${kbd('M')}</dt><dd>静音</dd></div>
-      <div><dt>${kbd('C')}</dt><dd>字幕</dd></div>
-      <div><dt>${kbd('F')}</dt><dd>全屏</dd></div>
-      <div><dt>${kbd('?')}</dt><dd>显示本列表</dd></div>
-    </dl>
+<aside class="tp-side" data-r="modalWrap" aria-label="小题">
+  <div class="tp-side-inner" data-r="modal" tabindex="-1">
+    <button class="tp-icon tp-side-x" data-act="closeQuiz" type="button" aria-label="收起">${ICON.close}</button>
+    <div class="tp-q-body" data-r="qBody"></div>
+    <div class="tp-q-actions">
+      <button class="tp-icon tp-q-reveal-btn" data-act="reveal" data-r="qReveal" type="button" aria-label="显示答案" aria-pressed="false">${ICON.eye}${ICON.eyeOff}</button>
+      <button class="tp-icon" data-act="resume" type="button" aria-label="继续播放">${ICON.play}</button>
+      <div class="tp-q-pager" data-r="qPager"></div>
+    </div>
   </div>
-</div>
+</aside>
 
 <div class="tp-start" data-r="start">
   <div class="tp-start-inner">
     <h1 class="tp-title">${video.titleHTML || esc(video.title || '')}</h1>
-    ${video.subtitleHTML ? `<p class="tp-subtitle">${video.subtitleHTML}</p>` : ''}
-    <p class="tp-start-meta">${meta}</p>
     <div class="tp-start-actions">
-      <button class="tp-start-play" data-act="startMain" data-r="startPlay" type="button">${ICON.play}<span data-r="startLabel">播放</span></button>
-      <button class="tp-start-alt" data-act="startOver" data-r="startOver" type="button" hidden>从头播放</button>
+      <button class="tp-start-play" data-act="startMain" data-r="startPlay" type="button" aria-label="播放">${ICON.play}</button>
+      <button class="tp-start-alt" data-act="startOver" data-r="startOver" type="button" aria-label="从头播放" hidden>${ICON.replay}</button>
     </div>
-    <p class="tp-start-note" data-r="startNote" hidden></p>
   </div>
 </div>`;
 }
@@ -266,7 +223,7 @@ function showFatal(root, err) {
   const stage = root.querySelector('.tp-stage') || root;
   const box = document.createElement('div');
   box.className = 'tp-error';
-  box.innerHTML = `<div class="tp-error-title">页面没能加载</div><pre></pre>`;
+  box.innerHTML = `<pre></pre>`;
   box.querySelector('pre').textContent = String((err && (err.stack || err.message)) || err);
   stage.appendChild(box);
   console.error(err);
@@ -331,7 +288,7 @@ export async function startPlayer(cfg = {}) {
   let ended = false;
   let rate = SPEEDS.includes(S.rate) ? S.rate : 1;
   let subs = S.subs !== false;
-  let autoQuiz = S.autoQuiz === true;
+  const autoQuiz = video.pauseAtQuiz === true; // pause and open the quiz when it is reached
   let volume = typeof S.volume === 'number' ? clamp(S.volume) : 1;
   let muted = S.muted === true;
   let audioOK = !!video.audio;
@@ -348,7 +305,7 @@ export async function startPlayer(cfg = {}) {
   let uiShown = true;
   let idleTimer = 0;
   let overControls = false;
-  let menuOpen = false, panelOpen = false, modalOpen = false, keysOpen = false;
+  let menuOpen = false, panelOpen = false, modalOpen = false;
   let modalReturn = null;
   let quizN = 0, quizIdx = 0;
   let selfPause = false;
@@ -509,7 +466,6 @@ export async function startPlayer(cfg = {}) {
         return;
       }
       audioOK = false; // cannot play this file: keep going without sound
-      noteAudio();
     }
   }
   function pause() {
@@ -554,12 +510,10 @@ export async function startPlayer(cfg = {}) {
   }
   function skip(d) {
     seek(t + d);
-    osd(`${d < 0 ? '后退' : '前进'} ${Math.abs(d)} 秒`, 'skip', d);
   }
-  function goChapter(i, announce = true) {
+  function goChapter(i) {
     i = clamp(i, 0, chapters.length - 1);
     seek(chapters[i].start);
-    if (announce) osd(label(chapters[i]), 'chapter');
   }
   function prevChapter() {
     const i = chapterAt(t);
@@ -568,10 +522,9 @@ export async function startPlayer(cfg = {}) {
   function nextChapter() {
     const i = chapterAt(t);
     if (i + 1 < chapters.length) goChapter(i + 1);
-    else osd('已经是最后一节', 'chapter');
   }
 
-  function setRate(r, announce = false) {
+  function setRate(r) {
     rate = r;
     audio.playbackRate = r;
     audio.defaultPlaybackRate = r;
@@ -580,38 +533,31 @@ export async function startPlayer(cfg = {}) {
     for (const b of R.speedMenu.querySelectorAll('[data-rate]')) b.setAttribute('aria-checked', String(+b.dataset.rate === r));
     S.rate = r;
     store.save();
-    if (announce) osd(r === 1 ? '1× 正常速度' : `${fmtRate(r)} 速度`, 'rate');
   }
   function stepRate(d) {
     const i = SPEEDS.indexOf(rate);
     const j = clamp((i < 0 ? 1 : i) + d, 0, SPEEDS.length - 1);
-    setRate(SPEEDS[j], true);
+    setRate(SPEEDS[j]);
   }
-  function setSubs(on, announce = false) {
+  function setSubs(on) {
     subs = on;
     needDraw = true;
     R.subsBtn.classList.toggle('is-on', on);
     R.subsBtn.setAttribute('aria-pressed', String(on));
-    R.subsBtn.dataset.tip = on ? '关闭字幕' : '打开字幕';
-    R.subsBtn.dataset.keys = 'C';
     S.subs = on;
     store.save();
-    if (announce) osd(on ? '字幕已打开' : '字幕已关闭', 'subs');
-    refreshTip();
   }
-  function setVolume(v, announce = false) {
+  function setVolume(v) {
     volume = clamp(Math.round(v * 100) / 100);
     if (volume > 0 && muted) muted = false;
     applyVolume();
-    if (announce) osd(muted || volume === 0 ? '已静音' : `音量 ${Math.round(volume * 100)}%`, 'vol');
   }
-  function toggleMute(announce = false) {
+  function toggleMute() {
     if (muted || volume === 0) {
       muted = false;
       if (volume === 0) volume = 0.5;
     } else muted = true;
     applyVolume();
-    if (announce) osd(muted ? '已静音' : `音量 ${Math.round(volume * 100)}%`, 'vol');
   }
   function applyVolume() {
     audio.volume = volume;
@@ -622,12 +568,9 @@ export async function startPlayer(cfg = {}) {
     R.vol.setAttribute('aria-valuetext', muted ? '静音' : `${Math.round(volume * 100)}%`);
     R.muteBtn.dataset.level = v === 0 ? '0' : v < 0.5 ? '1' : '2';
     R.muteBtn.setAttribute('aria-label', v === 0 ? '取消静音' : '静音');
-    R.muteBtn.dataset.tip = v === 0 ? '取消静音' : '静音';
-    R.muteBtn.dataset.keys = 'M';
     S.volume = volume;
     S.muted = muted;
     store.save();
-    refreshTip();
   }
 
   const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -645,9 +588,6 @@ export async function startPlayer(cfg = {}) {
     const on = !!fsElement();
     R.fsBtn.classList.toggle('is-on', on);
     R.fsBtn.setAttribute('aria-label', on ? '退出全屏' : '全屏');
-    R.fsBtn.dataset.tip = on ? '退出全屏' : '全屏';
-    R.fsBtn.dataset.keys = 'F';
-    refreshTip();
   }
   document.addEventListener('fullscreenchange', updateFullscreen);
   document.addEventListener('webkitfullscreenchange', updateFullscreen);
@@ -659,11 +599,8 @@ export async function startPlayer(cfg = {}) {
     root.dataset.ended = String(ended);
     const lab = ended ? '重新播放' : playing ? '暂停' : '播放';
     R.playBtn.setAttribute('aria-label', lab);
-    R.playBtn.dataset.tip = lab;
-    R.playBtn.dataset.keys = ended ? '' : 'K';
     if (!playing) showUI();
     else armIdle();
-    refreshTip();
     if ('mediaSession' in navigator) {
       try {
         navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
@@ -696,7 +633,6 @@ export async function startPlayer(cfg = {}) {
     const ci = chapterAt(t);
     if (ci !== uiCh) {
       uiCh = ci;
-      R.chLabelText.textContent = label(chapters[ci]);
       rowEls.forEach((r, i) => r.classList.toggle('is-current', i === ci));
       setMediaMeta(label(chapters[ci]));
     }
@@ -722,10 +658,9 @@ export async function startPlayer(cfg = {}) {
     uiShown = false;
     root.dataset.ui = 'hidden';
     setLiftTarget(0);
-    hideTip();
   }
   function keepUI() {
-    return !playing || scrub.active || overControls || menuOpen || panelOpen || keysOpen || phase !== 'main' || !!R.controls.querySelector(':focus-visible');
+    return !playing || scrub.active || overControls || menuOpen || panelOpen || phase !== 'main' || !!R.controls.querySelector(':focus-visible');
   }
   function armIdle() {
     clearTimeout(idleTimer);
@@ -741,61 +676,6 @@ export async function startPlayer(cfg = {}) {
     showUI();
     armIdle();
   }
-
-  // on-screen messages
-  let osdTimer = 0, osdKind = '', osdSum = 0;
-  function osd(text, kind = '', amount = 0) {
-    if (kind === 'skip' && osdKind === 'skip' && R.osd.classList.contains('is-on') && Math.sign(amount) === Math.sign(osdSum)) {
-      osdSum += amount;
-      text = `${osdSum < 0 ? '后退' : '前进'} ${Math.abs(osdSum)} 秒`;
-    } else osdSum = amount;
-    osdKind = kind;
-    R.osd.textContent = text;
-    R.osd.classList.add('is-on');
-    clearTimeout(osdTimer);
-    osdTimer = setTimeout(() => R.osd.classList.remove('is-on'), 1100);
-  }
-
-  // tooltips for buttons
-  let tipEl = null, tipTimer = 0;
-  function showTip(el) {
-    if (!el || !el.dataset.tip || menuOpen || scrub.active) return;
-    tipEl = el;
-    const keys = (el.dataset.keys || '').split(' ').filter(Boolean);
-    R.tip.innerHTML = `<span>${esc(el.dataset.tip)}</span>${keys.length ? `<span class="tp-tip-k">${keys.map(esc).join(' ')}</span>` : ''}`;
-    const sr = stage.getBoundingClientRect(), er = el.getBoundingClientRect();
-    const tw = R.tip.offsetWidth, th = R.tip.offsetHeight;
-    const x = clamp(er.left + er.width / 2 - sr.left - tw / 2, 8, sr.width - tw - 8);
-    // above the control bar for its buttons, above the element otherwise
-    const top = R.controls.contains(el) ? R.controls.getBoundingClientRect().top : er.top;
-    const y = top - sr.top - th - 8;
-    R.tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
-    R.tip.classList.add('is-on');
-  }
-  function hideTip() {
-    clearTimeout(tipTimer);
-    tipEl = null;
-    R.tip.classList.remove('is-on');
-  }
-  function refreshTip() {
-    if (tipEl && R.tip.classList.contains('is-on')) showTip(tipEl);
-  }
-  stage.addEventListener('pointerover', (e) => {
-    const el = e.target.closest('[data-tip]');
-    if (!el || el === tipEl) return;
-    hideTip();
-    tipTimer = setTimeout(() => showTip(el), 140);
-  });
-  stage.addEventListener('pointerout', (e) => {
-    const el = e.target.closest('[data-tip]');
-    if (el && !el.contains(e.relatedTarget)) hideTip();
-  });
-  stage.addEventListener('focusin', (e) => {
-    const el = e.target.closest('[data-tip]');
-    if (el && el.matches(':focus-visible')) showTip(el);
-  });
-  stage.addEventListener('focusout', hideTip);
-  stage.addEventListener('pointerdown', hideTip, true);
 
   // ---------------------------------------------------------------- progress bar
   const tAtX = (clientX) => {
@@ -819,7 +699,6 @@ export async function startPlayer(cfg = {}) {
     }
     if (!show) return;
     const c = chapters[chapterAt(ht)];
-    R.pch.textContent = label(c);
     R.ptime.textContent = fmtTime(ht);
     if (canPreview && !scrub.active) {
       try {
@@ -917,7 +796,7 @@ export async function startPlayer(cfg = {}) {
     if (d === undefined) return;
     e.preventDefault();
     e.stopPropagation();
-    setVolume((muted ? 0 : volume) + d, true);
+    setVolume((muted ? 0 : volume) + d);
   });
 
   // ---------------------------------------------------------------- menus & panel
@@ -934,7 +813,6 @@ export async function startPlayer(cfg = {}) {
     placeMenu();
     R.speedMenu.classList.add('is-on');
     R.speedBtn.setAttribute('aria-expanded', 'true');
-    hideTip();
     showUI();
     const cur = R.speedMenu.querySelector('[aria-checked="true"]');
     if (cur && R.speedBtn.matches(':focus-visible')) cur.focus();
@@ -953,14 +831,13 @@ export async function startPlayer(cfg = {}) {
     R.panel.classList.add('is-on');
     R.chBtn.setAttribute('aria-expanded', 'true');
     R.chBtn.classList.add('is-on');
-    hideTip();
     showUI();
     uiT = -1;
     updateUI();
     const cur = R.chList.querySelector('.is-current .tp-ch-main');
     if (cur) {
       cur.scrollIntoView({ block: 'nearest' });
-      if (R.chBtn.matches(':focus-visible') || R.chLabel.matches(':focus-visible')) cur.focus();
+      if (R.chBtn.matches(':focus-visible')) cur.focus();
     }
   }
   function closePanel(focusBack = false) {
@@ -976,12 +853,6 @@ export async function startPlayer(cfg = {}) {
     closeMenu();
     closePanel();
   }
-  function setAutoQuiz(on) {
-    autoQuiz = on;
-    R.autoQuiz.setAttribute('aria-checked', String(on));
-    S.autoQuiz = on;
-    store.save();
-  }
 
   // ---------------------------------------------------------------- quizzes
   const qKey = (n, i) => `${n}.${i}`;
@@ -992,8 +863,6 @@ export async function startPlayer(cfg = {}) {
       const n = +b.dataset.quiz;
       const all = quizzes.get(n).every((_, i) => done[qKey(n, i)]);
       b.classList.toggle('is-done', all);
-      b.querySelector('.tp-ch-quiz-text').textContent = all ? '已做' : '做题';
-      b.dataset.tip = all ? '再看一遍题目' : '检验一下';
     }
   }
 
@@ -1002,7 +871,6 @@ export async function startPlayer(cfg = {}) {
     const c = chapters.find((x) => x.n === n);
     if (!c) return;
     cardN = n;
-    R.cardTitle.textContent = `第${c.label}节的小题`;
     R.card.classList.remove('is-on'); // restarts the countdown when it was already showing
     void R.card.offsetWidth;
     R.card.classList.add('is-on');
@@ -1013,7 +881,6 @@ export async function startPlayer(cfg = {}) {
   }
   R.cardLife.style.animationDuration = `${CARD_MS}ms`;
   R.cardLife.addEventListener('animationend', hideCard);
-  if (!checkpoints.length) R.panel.querySelector('.tp-panel-foot').hidden = true;
 
   function reachCheckpoint(cp) {
     if (autoQuiz) {
@@ -1030,18 +897,14 @@ export async function startPlayer(cfg = {}) {
     pause();
     hideCard();
     closeMenus();
-    const c = chapters.find((x) => x.n === n);
     quizN = n;
     quizIdx = clamp(i, 0, list.length - 1);
-    R.qKicker.textContent = `检验一下 · 第${c.label}节`;
-    R.qTitle.textContent = c.title;
     renderQuiz();
     if (!modalOpen) modalReturn = document.activeElement;
     modalOpen = true;
     R.modalWrap.classList.add('is-on');
     root.dataset.side = 'on';
     showUI();
-    hideTip();
     R.modal.focus({ preventScroll: true });
   }
   function renderQuiz() {
@@ -1051,10 +914,10 @@ export async function startPlayer(cfg = {}) {
     const revealed = !!done[key];
     R.qBody.innerHTML = `
       <div class="tp-q-question">${paras(q.question)}</div>
-      <textarea class="tp-q-input" id="tp-q-answer" rows="1" aria-label="你的答案" placeholder="写下你的想法（可以不写）"></textarea>
+      <textarea class="tp-q-input" id="tp-q-answer" rows="1" aria-label="你的答案"></textarea>
       <div class="tp-q-reveal" ${revealed ? '' : 'hidden'}>
-        <div class="tp-q-sec"><div class="tp-q-h">答案</div><div class="tp-q-answer">${paras(q.answer)}</div></div>
-        ${q.explain ? `<div class="tp-q-sec"><div class="tp-q-h">解析</div><div class="tp-q-explain">${paras(q.explain)}</div></div>` : ''}
+        <div class="tp-q-answer">${paras(q.answer)}</div>
+        ${q.explain ? `<div class="tp-q-explain">${paras(q.explain)}</div>` : ''}
       </div>`;
     const ta = R.qBody.querySelector('textarea');
     ta.value = answers[key] || '';
@@ -1072,19 +935,21 @@ export async function startPlayer(cfg = {}) {
       }, 300);
     });
     requestAnimationFrame(grow);
-    R.qReveal.textContent = revealed ? '隐藏答案' : '显示答案';
-    R.qReveal.setAttribute('aria-expanded', String(revealed));
+    setRevealBtn(revealed);
     R.qPager.innerHTML =
       list.length > 1
-        ? `<button class="tp-link tp-link--icon" data-act="qPrev" type="button" aria-label="上一题" ${quizIdx === 0 ? 'disabled' : ''}>${ICON.left}</button><span>${quizIdx + 1} / ${list.length}</span><button class="tp-link tp-link--icon" data-act="qNext" type="button" aria-label="下一题" ${quizIdx === list.length - 1 ? 'disabled' : ''}>${ICON.chevron}</button>`
+        ? `<button class="tp-icon" data-act="qPrev" type="button" aria-label="上一题" ${quizIdx === 0 ? 'disabled' : ''}>${ICON.left}</button><span>${quizIdx + 1} / ${list.length}</span><button class="tp-icon" data-act="qNext" type="button" aria-label="下一题" ${quizIdx === list.length - 1 ? 'disabled' : ''}>${ICON.chevron}</button>`
         : '';
+  }
+  function setRevealBtn(on) {
+    R.qReveal.setAttribute('aria-pressed', String(on));
+    R.qReveal.setAttribute('aria-label', on ? '隐藏答案' : '显示答案');
   }
   function toggleReveal() {
     const box = R.qBody.querySelector('.tp-q-reveal');
     const show = box.hidden;
     box.hidden = !show;
-    R.qReveal.textContent = show ? '隐藏答案' : '显示答案';
-    R.qReveal.setAttribute('aria-expanded', String(show));
+    setRevealBtn(show);
     if (show) {
       done[qKey(quizN, quizIdx)] = true;
       store.save();
@@ -1113,50 +978,13 @@ export async function startPlayer(cfg = {}) {
     else poke();
   }
 
-  function openKeys() {
-    if (keysOpen) return;
-    keysOpen = true;
-    if (!modalOpen) modalReturn = document.activeElement;
-    R.keysWrap.classList.add('is-on');
-    showUI();
-    R.keys.focus({ preventScroll: true });
-  }
-  function closeKeys() {
-    if (!keysOpen) return;
-    keysOpen = false;
-    R.keysWrap.classList.remove('is-on');
-    poke();
-  }
-
-  // keep Tab inside an open dialog
-  function trapTab(e, box) {
-    const items = [...box.querySelectorAll('button:not([disabled]):not([hidden]), textarea, [tabindex="0"]')].filter((x) => x.offsetParent !== null);
-    if (!items.length) return;
-    const first = items[0], last = items[items.length - 1];
-    if (e.shiftKey && (document.activeElement === first || document.activeElement === box)) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
-
   // ---------------------------------------------------------------- start screen
   const resumeAt = typeof S.pos === 'number' && S.pos > RESUME_MIN && S.pos < total - RESUME_MIN ? S.pos : 0;
   if (resumeAt) {
-    R.startLabel.textContent = `继续播放 ${fmtTime(resumeAt)}`;
+    R.startPlay.setAttribute('aria-label', `从 ${fmtSpoken(resumeAt)} 继续播放`);
     R.startOver.hidden = false;
   }
-  function noteAudio() {
-    const name = decodeURIComponent(String(video.audio || '').split('/').pop() || '');
-    R.startNote.hidden = false;
-    R.startNote.innerHTML = name
-      ? `无法播放音频文件「${esc(name)}」<br><span>请把它和本页面放在同一个文件夹里。现在可以无声观看。</span>`
-      : '没有音频，可以无声观看。';
-    if (phase === 'main') osd('无法播放音频，现在是无声播放', 'audio');
-  }
-  // a video without a soundtrack is simply silent; the note is only for a file that failed
+  // a soundtrack that fails to load: the video plays on silently
 
   function begin(from, autoplay = true) {
     if (phase === 'main') return;
@@ -1182,7 +1010,7 @@ export async function startPlayer(cfg = {}) {
       return;
     }
     if (b.dataset.rate !== undefined) {
-      setRate(+b.dataset.rate, true);
+      setRate(+b.dataset.rate);
       closeMenu(b.matches(':focus-visible'));
       return;
     }
@@ -1205,7 +1033,6 @@ export async function startPlayer(cfg = {}) {
       case 'reveal': toggleReveal(); break;
       case 'resume': closeQuiz(true); break;
       case 'closeQuiz': closeQuiz(false); break;
-      case 'closeKeys': closeKeys(); break;
       case 'qPrev': quizIdx--; renderQuiz(); break;
       case 'qNext': quizIdx++; renderQuiz(); break;
     }
@@ -1214,17 +1041,10 @@ export async function startPlayer(cfg = {}) {
   // otherwise turn it into a focus ring and keep the bar from hiding
   root.addEventListener('click', (e) => {
     if (e.detail === 0) return; // activated from the keyboard: keep focus
-    const b = e.target.closest('.tp-controls button, .tp-menu button, .tp-card button');
+    const b = e.target.closest('.tp-controls button, .tp-menu button, .tp-card, .tp-side button, .tp-panel button');
     if (b && document.activeElement === b) b.blur();
   });
-  R.autoQuiz.addEventListener('click', (e) => {
-    e.preventDefault();
-    setAutoQuiz(!autoQuiz);
-  });
-  R.cardGo.addEventListener('click', () => openQuiz(cardN));
-  R.keysWrap.addEventListener('pointerdown', (e) => {
-    closeKeys();
-  });
+  R.card.addEventListener('click', () => openQuiz(cardN));
 
   // clicks on the picture: play / pause, or close an open menu
   canvas.tabIndex = -1;
@@ -1273,13 +1093,6 @@ export async function startPlayer(cfg = {}) {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     const k = e.key;
     const typing = e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.isContentEditable);
-    if (keysOpen) {
-      if (k === 'Escape' || k === '?') {
-        e.preventDefault();
-        closeKeys();
-      } else if (k === 'Tab') trapTab(e, R.keys);
-      return;
-    }
     if (modalOpen && k === 'Escape') {
       e.preventDefault();
       closeQuiz(false);
@@ -1291,7 +1104,7 @@ export async function startPlayer(cfg = {}) {
         if (k === 'Enter' && e.target.closest && e.target.closest('button')) return; // the focused button handles it
         e.preventDefault();
         begin(resumeAt || 0);
-      } else if (k === '?') openKeys();
+      }
       return;
     }
     if (phase !== 'main') return;
@@ -1329,18 +1142,18 @@ export async function startPlayer(cfg = {}) {
         skip(SEEK_LARGE);
         break;
       case 'ArrowUp':
-        setVolume((muted ? 0 : volume) + 0.05, true);
+        setVolume((muted ? 0 : volume) + 0.05);
         break;
       case 'ArrowDown':
-        setVolume((muted ? 0 : volume) - 0.05, true);
+        setVolume((muted ? 0 : volume) - 0.05);
         break;
       case 'm':
       case 'M':
-        toggleMute(true);
+        toggleMute();
         break;
       case 'c':
       case 'C':
-        setSubs(!subs, true);
+        setSubs(!subs);
         break;
       case 'f':
       case 'F':
@@ -1354,14 +1167,10 @@ export async function startPlayer(cfg = {}) {
         break;
       case 'Home':
         seek(0);
-        osd('回到开头', 'chapter');
         break;
       case 'End':
         seek(total);
         finish();
-        break;
-      case '?':
-        openKeys();
         break;
       case 'Escape':
         if (menuOpen) closeMenu(true);
@@ -1390,7 +1199,6 @@ export async function startPlayer(cfg = {}) {
   audio.addEventListener('error', () => {
     if (!audioOK) return;
     audioOK = false;
-    noteAudio();
   });
   audio.addEventListener('pause', () => {
     if (selfPause) {
@@ -1472,7 +1280,6 @@ export async function startPlayer(cfg = {}) {
   }
   setRate(rate);
   setSubs(subs);
-  setAutoQuiz(autoQuiz);
   applyVolume();
   updateFullscreen();
   refreshDone();
@@ -1508,7 +1315,6 @@ export async function startPlayer(cfg = {}) {
     },
     closeQuiz: () => closeQuiz(false),
     showCard: (n) => showCard(n ?? (checkpoints[0] && checkpoints[0].n)),
-    openKeys,
     checkpoints,
     video,
   };
