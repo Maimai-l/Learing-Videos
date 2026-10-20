@@ -97,6 +97,21 @@ function shellHTML() {
   <canvas class="tp-canvas" data-r="canvas" aria-label="视频画面"></canvas>
   <div class="tp-loading" data-r="loading" aria-label="正在加载"><div class="tp-spinner"></div></div>
 </div>
+<aside class="tp-side" data-r="modalWrap" aria-label="小题">
+  <div class="tp-side-inner" data-r="modal" role="region" aria-labelledby="tp-q-title" tabindex="-1">
+    <div class="tp-side-head">
+      <div class="tp-q-kicker" data-r="qKicker"></div>
+      <button class="tp-link" data-act="closeQuiz" type="button">收起</button>
+    </div>
+    <h2 class="tp-q-title" id="tp-q-title" data-r="qTitle"></h2>
+    <div class="tp-q-body" data-r="qBody"></div>
+    <div class="tp-q-actions">
+      <button class="tp-link" data-act="reveal" data-r="qReveal" type="button">显示答案</button>
+      <button class="tp-link tp-link--strong" data-act="resume" type="button">继续播放</button>
+      <div class="tp-q-pager" data-r="qPager"></div>
+    </div>
+  </div>
+</aside>
 <audio data-r="audio" preload="auto"></audio>`;
 }
 
@@ -187,19 +202,6 @@ function stageHTML({ video, chapters, total, quizzes }) {
     <button class="tp-menu-item" data-r="autoQuiz" role="menuitemcheckbox" aria-checked="false" type="button">${ICON.check}<span>到小题时暂停</span></button>
   </footer>
 </section>
-
-<div class="tp-modal-wrap" data-r="modalWrap">
-  <div class="tp-modal" data-r="modal" role="dialog" aria-modal="true" aria-labelledby="tp-q-title" tabindex="-1">
-    <div class="tp-q-kicker" data-r="qKicker"></div>
-    <h2 class="tp-q-title" id="tp-q-title" data-r="qTitle"></h2>
-    <div class="tp-q-body" data-r="qBody"></div>
-    <div class="tp-q-actions">
-      <button class="tp-link" data-act="reveal" data-r="qReveal" type="button">显示答案</button>
-      <button class="tp-link tp-link--strong" data-act="resume" type="button">继续播放</button>
-      <div class="tp-q-pager" data-r="qPager"></div>
-    </div>
-  </div>
-</div>
 
 <div class="tp-modal-wrap tp-keys-wrap" data-r="keysWrap">
   <div class="tp-modal tp-keys" data-r="keys" role="dialog" aria-modal="true" aria-labelledby="tp-keys-title" tabindex="-1">
@@ -723,7 +725,7 @@ export async function startPlayer(cfg = {}) {
     hideTip();
   }
   function keepUI() {
-    return !playing || scrub.active || overControls || menuOpen || panelOpen || modalOpen || keysOpen || phase !== 'main' || !!R.controls.querySelector(':focus-visible');
+    return !playing || scrub.active || overControls || menuOpen || panelOpen || keysOpen || phase !== 'main' || !!R.controls.querySelector(':focus-visible');
   }
   function armIdle() {
     clearTimeout(idleTimer);
@@ -1037,6 +1039,7 @@ export async function startPlayer(cfg = {}) {
     if (!modalOpen) modalReturn = document.activeElement;
     modalOpen = true;
     R.modalWrap.classList.add('is-on');
+    root.dataset.side = 'on';
     showUI();
     hideTip();
     R.modal.focus({ preventScroll: true });
@@ -1101,6 +1104,7 @@ export async function startPlayer(cfg = {}) {
     }
     modalOpen = false;
     R.modalWrap.classList.remove('is-on');
+    root.dataset.side = 'off';
     const back = modalReturn;
     modalReturn = null;
     if (back && back.focus && root.contains(back) && back.matches(':focus-visible')) back.focus();
@@ -1218,9 +1222,6 @@ export async function startPlayer(cfg = {}) {
     setAutoQuiz(!autoQuiz);
   });
   R.cardGo.addEventListener('click', () => openQuiz(cardN));
-  R.modalWrap.addEventListener('pointerdown', (e) => {
-    if (e.target === R.modalWrap) closeQuiz(false);
-  });
   R.keysWrap.addEventListener('pointerdown', (e) => {
     closeKeys();
   });
@@ -1279,11 +1280,9 @@ export async function startPlayer(cfg = {}) {
       } else if (k === 'Tab') trapTab(e, R.keys);
       return;
     }
-    if (modalOpen) {
-      if (k === 'Escape') {
-        e.preventDefault();
-        closeQuiz(false);
-      } else if (k === 'Tab') trapTab(e, R.modal);
+    if (modalOpen && k === 'Escape') {
+      e.preventDefault();
+      closeQuiz(false);
       return;
     }
     if (typing) return;
