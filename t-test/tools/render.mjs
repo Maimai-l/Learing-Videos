@@ -1,7 +1,7 @@
 // Render the video frame by frame and encode it with the soundtrack.
 //
 //   node tools/render.mjs --out out/preview.mp4 --from 0 --to 80 [--fps 60] [--workers 3]
-//                         [--preview] [--audio build/audio/mix.m4a]
+//                         [--preview] [--audio build/audio/mix.m4a] [--crf 15]
 //
 // Each worker renders a contiguous range of frames in its own page and pipes PNG
 // images straight into an ffmpeg process; the parts are joined without re-encoding.
@@ -39,7 +39,7 @@ let done = 0;
 
 const x264 = preview
   ? ['-preset', 'veryfast', '-crf', '20']
-  : ['-preset', 'slow', '-crf', '15', '-tune', 'animation'];
+  : ['-preset', 'slow', '-crf', String(args.crf || 15), '-tune', 'animation'];
 
 async function work(k) {
   const a = n0 + k * per, b = Math.min(n1, a + per);

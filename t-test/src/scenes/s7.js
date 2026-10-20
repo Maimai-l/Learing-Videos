@@ -12,6 +12,7 @@ export function build7(N) {
   const { A } = S;
   const layers = [];
   const LB = {
+    rule: mixed('正态数据加减组合得到的量：不相关 $\\Longrightarrow$ 相互独立'),
     gaps: mixed('$n-1$ 条间距'),
     div: mixed('$\\div\\,\\sigma^2$'),
     eachz: mixed('每个 $z$ 都是标准正态变量，彼此独立'),
@@ -193,7 +194,7 @@ export function build7(N) {
       const pr = prog(t, b.rule, 0.7);
       if (pr > 0) {
         roundRect(ctx, 560, 84, 800, 98, 16, { fill: '#151C29', fillAlpha: 0.9, stroke: C.hi, width: 2, alpha: A2 * pr });
-        text(ctx, '正态数据加减组合得到的量：不相关 ⟹ 相互独立', 960, 120, { size: 30, color: C.text, alpha: A2 * pr });
+        rich(ctx, LB.rule, 960, 120, { size: 30, color: C.text, alpha: A2 * pr });
         text(ctx, '（正态分布特有的性质）', 960, 158, { size: 24, color: C.hi, alpha: A2 * prog(t, b.only, 0.6) });
       }
     },
