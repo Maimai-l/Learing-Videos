@@ -15,11 +15,11 @@
   @font-face { font-family: 'Noto Serif SC'; font-weight: 400; font-display: block; src: url('../node_modules/@expo-google-fonts/noto-serif-sc/400Regular/NotoSerifSC_400Regular.ttf'); }
   @font-face { font-family: 'Noto Serif SC'; font-weight: 600; font-display: block; src: url('../node_modules/@expo-google-fonts/noto-serif-sc/600SemiBold/NotoSerifSC_600SemiBold.ttf'); }
 </style>
-<link rel="stylesheet" href="./player/player.css">
+<link rel="stylesheet" href="../../player/player.css">
 </head>
 <body>
 <script type="module">
-  import { startPlayer } from './player/player.js';
+  import { startPlayer } from './player/start.js';
   const q = new URLSearchParams(location.search);
   startPlayer({
     tex: '../build/tex.json',

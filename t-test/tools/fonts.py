@@ -68,7 +68,8 @@ def collect():
         for f in json.loads(tex.read_text('utf8')).get('formulas', {}).values():
             for t in f.get('txt', []):
                 chars.update(t.get('s', ''))
-    for p in sorted((ROOT / 'src').rglob('*')):
+    # this video's sources and the shared player's interface text
+    for p in sorted([*(ROOT / 'src').rglob('*'), *(ROOT.parent / 'player').glob('*')]):
         if p.is_file() and p.suffix in ('.js', '.mjs', '.html', '.css'):
             chars.update(p.read_text('utf8'))
     return ''.join(sorted(c for c in chars if ord(c) >= 0x20 and ord(c) != 0x7F and not 0xD800 <= ord(c) <= 0xDFFF))

@@ -39,7 +39,7 @@ const fontCSS = faces
 
 // ---- script and stylesheet ----
 const js = await esbuild.build({
-  entryPoints: [path.join(root, 'src/player/player.js')],
+  entryPoints: [path.join(root, 'src/player/start.js')],
   bundle: true,
   format: 'iife',
   globalName: 'TPlayer',
@@ -52,7 +52,7 @@ const js = await esbuild.build({
 });
 const code = js.outputFiles[0].text;
 const css = (
-  await esbuild.transform(fs.readFileSync(path.join(root, 'src/player/player.css'), 'utf8'), {
+  await esbuild.transform(fs.readFileSync(path.join(root, '../player/player.css'), 'utf8'), {
     loader: 'css',
     minify: true,
     charset: 'utf8',
