@@ -16,7 +16,7 @@ const STORE_KEY = 't-test-player/v1';
 const IDLE_MS = 2500; // controls hide after this long without the mouse moving
 const CARD_MS = 8000; // the quiz card fades after this long (while playing)
 const QUIZ_AT = 0.3; // checkpoint: seconds after the chapter's last word
-const POSTER_T = 0.6; // frame drawn behind the start screen
+const POSTER_T = -1; // frame behind the start screen: before every layer, so only the background
 const RESUME_MIN = 10; // offer to resume beyond this position (seconds)
 const SEEK_SMALL = 5;
 const SEEK_LARGE = 10;
@@ -1156,8 +1156,10 @@ export async function startPlayer(cfg = {}) {
   function noteAudio() {
     const name = decodeURIComponent(String(cfg.audio || '').split('/').pop() || '');
     R.startNote.hidden = false;
-    R.startNote.textContent = name ? `没有找到音频文件「${name}」，请把它和本页面放在同一个文件夹里。现在只能无声观看。` : '没有音频，只能无声观看。';
-    if (phase === 'main') osd('没有找到音频，只能无声观看', 'audio');
+    R.startNote.innerHTML = name
+      ? `无法播放音频文件「${esc(name)}」<br><span>请把它和本页面放在同一个文件夹里。现在可以无声观看。</span>`
+      : '没有音频，可以无声观看。';
+    if (phase === 'main') osd('无法播放音频，现在是无声播放', 'audio');
   }
   if (!audioOK) noteAudio();
 
@@ -1473,7 +1475,6 @@ export async function startPlayer(cfg = {}) {
   layout();
   requestAnimationFrame(frame);
   if (typeof cfg.at === 'number' && isFinite(cfg.at)) begin(cfg.at, false); // dev: open paused at a time
-  else requestAnimationFrame(() => R.startPlay.focus({ preventScroll: true }));
 
   // ---------------------------------------------------------------- debug API
   const api = {

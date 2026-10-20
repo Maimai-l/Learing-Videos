@@ -277,7 +277,7 @@ body {
   line-height: 1;
 }
 .tp-dot {
-  margin: 0 1em;
+  margin: 0 0.7em;
   color: var(--dim);
 }
 .tp-start-play {
@@ -348,11 +348,15 @@ body {
   background: var(--hover);
 }
 .tp-start-note {
-  max-width: 64cqh;
-  margin: 2.4cqh 0 0;
+  max-width: 80cqh;
+  margin: 3cqh 0 0;
   font-size: 1.75cqh;
-  line-height: 1.6;
+  line-height: 1.7;
   color: #ffb34d;
+  text-wrap: balance;
+}
+.tp-start-note span {
+  color: var(--dim);
 }
 .tp-start-foot {
   position: absolute;
