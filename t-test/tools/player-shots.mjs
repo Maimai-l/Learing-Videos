@@ -69,6 +69,7 @@ for (const [w, h] of sizes) {
   await page.waitForTimeout(450);
   await shot('d-chapters');
   await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
 
   // quiz card at the end of a chapter
   await page.evaluate(() => window.__tp.showCard());
@@ -84,17 +85,23 @@ for (const [w, h] of sizes) {
   await page.waitForTimeout(700);
   await shot('f-quiz-answer');
   await page.keyboard.press('Escape');
+  await page.waitForTimeout(350);
 
   // speed menu
   await page.mouse.click(...(await center('[data-r="speedBtn"]')));
   await page.waitForTimeout(400);
   await shot('g-speed-menu');
   await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+
+  // volume slider opens on hover
+  await page.mouse.move(...(await center('[data-r="muteBtn"]')), { steps: 3 });
+  await page.waitForTimeout(450);
+  await shot('g2-volume');
 
   // keyboard focus ring + tooltip on a control
   await page.mouse.move(w * 0.5, h * 0.3);
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
+  for (let i = 0; i < 3; i++) await page.keyboard.press('Tab');
   await page.waitForTimeout(350);
   await shot('h-focus');
 
@@ -103,6 +110,7 @@ for (const [w, h] of sizes) {
   await page.waitForTimeout(450);
   await shot('i-shortcuts');
   await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
 
   // playing, mouse still: controls hide after 2.5 s
   await page.evaluate(() => {

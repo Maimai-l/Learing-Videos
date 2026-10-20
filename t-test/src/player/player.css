@@ -94,6 +94,9 @@ body {
   width: 100%;
   height: 100%;
 }
+.tp-canvas:focus-visible {
+  outline: none;
+}
 .tp[data-phase='main'][data-ui='hidden'] .tp-stage {
   cursor: none;
 }
@@ -122,12 +125,12 @@ body {
   fill: currentColor;
   stroke: none;
   font-family: var(--sans);
-  font-size: 7.8px;
+  font-size: 8.4px;
   font-weight: 700;
   text-anchor: middle;
 }
 .tp-i .tp-zi {
-  font-size: 9.6px;
+  font-size: 10.4px;
   font-weight: 700;
 }
 .tp kbd {
@@ -162,6 +165,7 @@ body {
 .tp:not([data-phase='loading']) .tp-loading {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 .tp-spinner {
   width: 2.25rem;
@@ -404,6 +408,7 @@ body {
 .tp:not([data-phase='main']) .tp-controls {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transform: translateY(0.6rem);
 }
 
@@ -494,7 +499,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  height: 2.75rem;
+  height: 3rem;
 }
 .tp-group {
   display: flex;
@@ -514,13 +519,13 @@ body {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
   border: 0;
-  border-radius: 0.7rem;
+  border-radius: 0.75rem;
   background: transparent;
-  color: rgba(233, 236, 242, 0.88);
+  color: rgba(233, 236, 242, 0.9);
   cursor: pointer;
   transition: background 0.16s, color 0.16s, transform 0.12s;
 }
@@ -537,8 +542,8 @@ body {
 }
 .tp-btn > .tp-i {
   grid-area: 1 / 1;
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.6rem;
+  height: 1.6rem;
   transition: opacity 0.16s, transform 0.22s var(--ease);
 }
 
@@ -555,18 +560,16 @@ body {
   transform: none;
 }
 .tp-btn--play > .tp-i {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.7rem;
+  height: 1.7rem;
 }
 
 /* fullscreen: enter / exit */
-.tp-btn > .tp-i + .tp-i {
+.tp-btn--swap > .tp-i + .tp-i,
+.tp-btn--swap.is-on > .tp-i:first-child {
   opacity: 0;
 }
-.tp-btn.is-on > .tp-i:first-child {
-  opacity: 0;
-}
-.tp-btn.is-on > .tp-i + .tp-i {
+.tp-btn--swap.is-on > .tp-i + .tp-i {
   opacity: 1;
 }
 
@@ -590,18 +593,18 @@ body {
 /* speed: the value in a small outlined tag */
 .tp-btn--speed {
   width: auto;
-  min-width: 3.5rem;
-  padding: 0 0.5rem;
+  min-width: 3.9rem;
+  padding: 0 0.55rem;
 }
 .tp-btn--speed span {
   display: grid;
   place-items: center;
-  min-width: 2.5rem;
-  height: 1.3rem;
-  padding: 0 0.3rem;
+  min-width: 2.8rem;
+  height: 1.45rem;
+  padding: 0 0.35rem;
   border: 1.5px solid currentColor;
-  border-radius: 0.38rem;
-  font-size: 0.75rem;
+  border-radius: 0.42rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -637,7 +640,7 @@ body {
   display: flex;
   align-items: center;
   width: 0;
-  height: 2.5rem;
+  height: 2.75rem;
   overflow: hidden;
   cursor: pointer;
   touch-action: none;
@@ -684,8 +687,8 @@ body {
 /* time and chapter */
 .tp-time {
   flex: none;
-  margin: 0 0.35rem 0 0.55rem;
-  font-size: 0.875rem;
+  margin: 0 0.35rem 0 0.6rem;
+  font-size: 0.9375rem;
   letter-spacing: 0.02em;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -703,14 +706,14 @@ body {
   align-items: center;
   gap: 0.1rem;
   min-width: 0;
-  height: 2.1rem;
-  margin-left: 0.55rem;
+  height: 2.25rem;
+  margin-left: 0.6rem;
   padding: 0 0.3rem 0 0.6rem;
   border: 0;
   border-radius: 0.6rem;
   background: none;
   color: var(--soft);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   cursor: pointer;
   transition: background 0.16s, color 0.16s;
 }
@@ -862,6 +865,10 @@ body {
   visibility: hidden;
   transform: translateY(0.45rem) scale(0.985);
   transition: opacity 0.18s var(--ease), transform 0.22s var(--ease), visibility 0.22s;
+}
+.tp-menu:not(.is-on),
+.tp-panel:not(.is-on) {
+  pointer-events: none;
 }
 .tp-menu.is-on,
 .tp-panel.is-on {
@@ -1171,6 +1178,9 @@ body {
   transform: translateX(1.5rem);
   transition: opacity 0.4s var(--ease), transform 0.5s var(--ease), visibility 0.5s;
 }
+.tp-card:not(.is-on) {
+  pointer-events: none;
+}
 .tp-card.is-on {
   opacity: 1;
   visibility: visible;
@@ -1214,7 +1224,7 @@ body {
   background: var(--gold);
   opacity: 0.45;
   transform-origin: 0 50%;
-  animation: tp-life 8s linear forwards; /* CARD_MS in player.js */
+  animation: tp-life 8s linear forwards; /* duration set from CARD_MS in player.js */
 }
 .tp-card:not(.is-on) .tp-card-life {
   animation: none;
@@ -1324,6 +1334,9 @@ body {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s var(--ease), visibility 0.25s;
+}
+.tp-modal-wrap:not(.is-on) {
+  pointer-events: none;
 }
 .tp-modal-wrap.is-on {
   opacity: 1;

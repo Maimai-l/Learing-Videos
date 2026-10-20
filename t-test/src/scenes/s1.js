@@ -57,7 +57,7 @@ export function build1(N) {
   };
 
   // ghost samples ("随机波动"): five values from a process with no effect
-  const ghosts = pickSamples(7, 5, 0, 1.1, [-0.35, 0.55, 1.1, 0.15]);
+  const ghosts = pickSamples(7, 5, 0, 1.1, [-0.35, 0.55, 1.1, 0.15], 4000, [-1.1, 3.1]);
   const ghostMean = ghosts.map((g) => g.reduce((a, b) => a + b, 0) / 5);
   const tg0 = tChance + 0.2, tgStep = 0.78;
 
@@ -266,11 +266,11 @@ export function build1(N) {
       line(ctx, x, ax.y + 14, x, top, { color: C.mu, width: lerp(2, 3.5, settled), alpha: muA, dash: settled < 1 ? [8, 7] : null });
       // labels
       const la = prog(t, tTrue, 0.6);
-      const nameA = muA * la * (1 - prog(t, tMu0 - 0.2, 0.5));
+      const nameA = muA * la * (1 - prog(t, tNull - 0.1, 0.4));
       text(ctx, '真实均值', x, top - 58, { size: 28, color: C.mu, alpha: nameA });
       drawTex(ctx, fMu, x, top - 22, 40, { color: C.mu, alpha: muA * prog(t, tMuSym, 0.5) * (1 - prog(t, tMu0 - 0.2, 0.5)) });
       drawTex(ctx, fMu0, x, top - 22, 40, { color: C.mu, alpha: muA * prog(t, tMu0, 0.5) });
-      text(ctx, '假如新工艺无效', x, top - 60, { size: 26, color: C.mu, alpha: muA * win(t, tNull + 0.2, tEnd, 0.5, 0.5) });
+      text(ctx, '假如新工艺无效', x, top - 60, { size: 26, color: C.mu, alpha: muA * win(t, tNull + 0.35, tEnd, 0.5, 0.5) });
       // counter while batches are being produced
       const ca = win(t, sStart + 0.2, tTrue + 1.5, 0.4, 0.6) * mainA;
       if (ca > 0) {

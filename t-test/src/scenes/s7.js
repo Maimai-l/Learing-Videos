@@ -167,7 +167,11 @@ export function build7(N) {
         line(ctx, x0 - 8, yBot, x1 + 8, yBot, { color: col, width: 3, alpha: A2 * ps });
       };
       slice(R, 1.8, 0.2, b.near2 + 0.3, C.hi);
-      if (prog(t, b.near2 + 1.2, 0.5) > 0) text(ctx, '和接近 2：间距只能接近 0', R.cx + 1.8 * UNIT, R.cy - 2.6 * UNIT + 10, { size: 22, color: C.hi, alpha: A2 * prog(t, b.near2 + 1.2, 0.5) * (1 - prog(t, b.left - 0.3, 0.5)) });
+      const pn2 = prog(t, b.near2 + 1.2, 0.5) * (1 - prog(t, b.left - 0.3, 0.5));
+      if (pn2 > 0) {
+        text(ctx, '和接近 2：', R.cx + 1.8 * UNIT + 26, R.cy - 1.3 * UNIT, { size: 22, color: C.hi, alpha: A2 * pn2, align: 'left' });
+        text(ctx, '间距只能接近 0', R.cx + 1.8 * UNIT + 26, R.cy - 1.3 * UNIT + 30, { size: 22, color: C.hi, alpha: A2 * pn2, align: 'left' });
+      }
       slice(R, 0, 2.0, b.depends, C.hi);
       // left: slices of the normal cloud have the same spread
       const L = panels[0];
@@ -183,14 +187,14 @@ export function build7(N) {
           poly(ctx, pts, { color: C.hi, width: 2.5, alpha: A2 * ps });
           line(ctx, L.cx + s0 * UNIT, L.cy - 2.4 * UNIT, L.cx + s0 * UNIT, L.cy + 2.4 * UNIT, { color: C.hi, width: 1.2, dash: [4, 5], alpha: A2 * ps * 0.7 });
         }
-        text(ctx, '不管和是多少，间距的分布都一样', L.cx, L.cy + 2.6 * UNIT + 50, { size: 24, color: C.hi, alpha: A2 * prog(t, b.same, 0.6) });
+        text(ctx, '不管和是多少，间距的分布都一样', L.cx, L.cy + 2.6 * UNIT + 24, { size: 24, color: C.hi, alpha: A2 * prog(t, b.same, 0.6) });
       }
       // the rule
       const pr = prog(t, b.rule, 0.7);
       if (pr > 0) {
-        roundRect(ctx, 560, 100, 800, 100, 16, { fill: '#151C29', fillAlpha: 0.9, stroke: C.hi, width: 2, alpha: A2 * pr });
-        text(ctx, '正态数据加减组合得到的量：不相关 ⟹ 相互独立', 960, 138, { size: 30, color: C.text, alpha: A2 * pr });
-        text(ctx, '（正态分布特有的性质）', 960, 178, { size: 24, color: C.hi, alpha: A2 * prog(t, b.only, 0.6) });
+        roundRect(ctx, 560, 84, 800, 98, 16, { fill: '#151C29', fillAlpha: 0.9, stroke: C.hi, width: 2, alpha: A2 * pr });
+        text(ctx, '正态数据加减组合得到的量：不相关 ⟹ 相互独立', 960, 120, { size: 30, color: C.text, alpha: A2 * pr });
+        text(ctx, '（正态分布特有的性质）', 960, 158, { size: 24, color: C.hi, alpha: A2 * prog(t, b.only, 0.6) });
       }
     },
   });
@@ -217,7 +221,8 @@ export function build7(N) {
   const fXb = T(String.raw`\bar{x}`, { inline: true }), fS2 = T(String.raw`s^2`, { inline: true });
   const chk1 = T(String.raw`E\big[(\varepsilon_1-\varepsilon_2)(\varepsilon_1+\varepsilon_2-2\varepsilon_3)\big]=\sigma^2-\sigma^2+0=0`);
   const chk2 = T(String.raw`E\big[(\varepsilon_1+\varepsilon_2-2\varepsilon_3)(\varepsilon_1+\varepsilon_2+\varepsilon_3)\big]=\sigma^2+\sigma^2-2\sigma^2=0`);
-  const termTex = ['\\frac{(x_1-x_2)^2}{2}', '\\frac{(x_1+x_2-2x_3)^2}{6}', '\\cdots', '\\frac{(x_1+\\cdots+x_4-4x_5)^2}{20}'].map((s) => T(s, { inline: true }));
+  const termTex = ['\\frac{(x_1-x_2)^2}{2}', '\\frac{(x_1+x_2-2x_3)^2}{6}', '\\cdots', '\\frac{(x_1+\\cdots+x_4-4x_5)^2}{20}']
+    .map((s) => T(s));
   const zTex = ['z_1^2', 'z_2^2', '\\cdots', 'z_{\\nu}^2'].map((s) => T(s, { inline: true }));
   const fRatio = T(String.raw`\frac{s^2}{\sigma^2}=\frac{\class{z}{z_1^2+z_2^2+\cdots+z_{\nu}^2}}{\nu},\qquad \nu=n-1`);
   const fChi = T(String.raw`\class{z}{z_1^2+z_2^2+\cdots+z_{\nu}^2}\ \sim\ \chi^2_{\nu}`);
@@ -258,7 +263,7 @@ export function build7(N) {
         const xs = [440, 760, 1080, 1400];
         termTex.forEach((f, i) => {
           const pi = prog(t, c.second + 0.4 + i * 0.2, 0.5);
-          drawTex(ctx, f, xs[i], 260, 34, { alpha: A3 * pi, color: C.dev });
+          drawTex(ctx, f, xs[i], 254, 30, { alpha: A3 * pi, color: C.dev });
           const pz = prog(t, c.z2 + i * 0.2, 0.6);
           if (pz > 0) {
             if (i !== 2) rich(ctx, LB.div, xs[i], 330, { size: 24, color: C.dim, alpha: A3 * pz });

@@ -66,6 +66,18 @@ const tlText = fs.readFileSync(path.join(root, 'build/timeline.json'), 'utf8');
 const tex = JSON.parse(texText);
 const tl = JSON.parse(tlText);
 
+// every formula the scenes ask for must already be in build/tex.json
+try {
+  const { texRequests } = await import('../src/engine/tex.js');
+  const { Narration } = await import('../src/engine/narration.js');
+  const { buildLayers } = await import('../src/scenes/index.js');
+  buildLayers(new Narration(tl));
+  const missing = [...texRequests().keys()].filter((k) => !tex.formulas[k]);
+  if (missing.length) console.warn(`! ${missing.length} formula(s) missing from build/tex.json, run node tools/build-tex.mjs first`);
+} catch (e) {
+  console.warn('! could not check the formulas:', e.message);
+}
+
 // favicon: the italic t of the title, from the formula glyphs
 function favicon() {
   const f = tex.formulas && tex.formulas['i|t'];

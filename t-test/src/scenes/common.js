@@ -112,11 +112,12 @@ export function stackDots(values, bin) {
 }
 
 // pick k samples of size n from N(mu, sd) whose means are closest to targets
-export function pickSamples(seed, n, mu, sd, targets, tries = 4000) {
+export function pickSamples(seed, n, mu, sd, targets, tries = 4000, range = null) {
   const g = normalSampler(seed);
   const pool = [];
   for (let i = 0; i < tries; i++) {
     const s = Array.from({ length: n }, () => mu + sd * g());
+    if (range && s.some((v) => v < range[0] || v > range[1])) continue; // keep every value on the axis
     pool.push({ s, m: s.reduce((a, b) => a + b, 0) / n });
   }
   return targets.map((tg) => {

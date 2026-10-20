@@ -135,7 +135,7 @@ export function build6(N) {
         arrow(ctx, PL.X(0.62), PL.Y(0.12), PL.X(0.62), PL.Y(0.62), { color: C.hi, width: 2.5, alpha: pa * pu });
         text(ctx, '最多升到将近 100%', PL.X(0.34), PL.Y(0.75), { size: 26, color: C.hi, alpha: pa * pu });
       }
-      const pd = prog(t, a.big + 2.0, 0.6);
+      const pd = prog(t, a.big + 2.0, 0.6) * (1 - prog(t, a.over - 0.3, 0.5));
       if (pd > 0) {
         arrow(ctx, PL.X(1.5), PL.Y(0.16), PL.X(1.5), PL.Y(0.02), { color: C.s, width: 2.5, alpha: pa * pd });
         text(ctx, '最多降到 0', PL.X(1.5), PL.Y(0.22), { size: 26, color: C.s, alpha: pa * pd });
@@ -156,7 +156,7 @@ export function build6(N) {
       const po = prog(t, a.over, 0.7);
       if (po > 0) {
         line(ctx, PL.X(0), PL.Y(0.145), PL.X(2.2), PL.Y(0.145), { color: C.err, width: 2.5, dash: [8, 6], alpha: pa * po });
-        text(ctx, '平均下来：超过 5%', PL.X(1.82), PL.Y(0.145) - 24, { size: 26, color: C.err, alpha: pa * po });
+        text(ctx, '平均下来：超过 5%', PL.X(1.6), PL.Y(0.145) - 26, { size: 26, color: C.err, alpha: pa * po });
       }
     },
   });

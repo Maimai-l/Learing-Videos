@@ -86,12 +86,12 @@ const ICON = {
   play: svg('<path class="tp-fill tp-fill--round" d="M8.7 6.4v11.2l9.1-5.6z"/>'),
   pause: svg('<rect class="tp-solid" x="6.7" y="5.7" width="3.7" height="12.6" rx="1.15"/><rect class="tp-solid" x="13.6" y="5.7" width="3.7" height="12.6" rx="1.15"/>'),
   replay: svg('<path d="M5.3 14.6A7.2 7.2 0 1 0 7.2 7"/><path d="M6.6 3.6v3.9h3.9"/>'),
-  back: svg('<path d="M11.3 5.4h.7a7.3 7.3 0 1 1-7.3 7.3"/><path d="m13.7 2.9-2.5 2.5 2.5 2.5"/><text x="12" y="15.75">5</text>'),
-  fwd: svg('<path d="M12.7 5.4H12a7.3 7.3 0 1 0 7.3 7.3"/><path d="m10.3 2.9 2.5 2.5-2.5 2.5"/><text x="12" y="15.75">5</text>'),
+  back: svg('<path d="M11.2 4.6h.8a8 8 0 1 1-8 8"/><path d="m13.7 2.1-2.5 2.5 2.5 2.5"/><text x="12" y="15.6">5</text>'),
+  fwd: svg('<path d="M12.8 4.6H12a8 8 0 1 0 8 8"/><path d="m10.3 2.1 2.5 2.5-2.5 2.5"/><text x="12" y="15.6">5</text>'),
   prev: svg('<path d="M6.7 6.3v11.4"/><path class="tp-fill" d="M17.4 7.2v9.6L10 12z"/>'),
   next: svg('<path d="M17.3 6.3v11.4"/><path class="tp-fill" d="M6.6 7.2v9.6L14 12z"/>'),
   vol: svg('<path d="M4.3 9.7h2.9l4.3-3.6v11.8l-4.3-3.6H4.3z"/><path class="tp-w1" d="M14.9 9.4a3.8 3.8 0 0 1 0 5.2"/><path class="tp-w2" d="M17.5 6.8a7.5 7.5 0 0 1 0 10.4"/><path class="tp-x" d="m15.3 9.8 4.4 4.4m0-4.4-4.4 4.4"/>'),
-  subs: svg('<rect class="tp-cc" x="3.4" y="5.4" width="17.2" height="13.2" rx="2.8"/><text class="tp-zi" x="12" y="15.45">字</text>'),
+  subs: svg('<rect class="tp-cc" x="2.9" y="4.9" width="18.2" height="14.2" rx="3"/><text class="tp-zi" x="12" y="15.85">字</text>'),
   list: svg('<path d="M9.6 7h9.6M9.6 12h9.6M9.6 17h9.6"/><circle class="tp-solid" cx="5.3" cy="7" r="1.25"/><circle class="tp-solid" cx="5.3" cy="12" r="1.25"/><circle class="tp-solid" cx="5.3" cy="17" r="1.25"/>'),
   full: svg('<path d="M4.6 9V6.3c0-.9.8-1.7 1.7-1.7H9m6 0h2.7c.9 0 1.7.8 1.7 1.7V9m0 6v2.7c0 .9-.8 1.7-1.7 1.7H15m-6 0H6.3c-.9 0-1.7-.8-1.7-1.7V15"/>'),
   unfull: svg('<path d="M9 4.6v2.7c0 .9-.8 1.7-1.7 1.7H4.6m10.4-4.4v2.7c0 .9.8 1.7 1.7 1.7h2.7m0 6h-2.7c-.9 0-1.7.8-1.7 1.7v2.7m-6 0v-2.7c0-.9-.8-1.7-1.7-1.7H4.6"/>'),
@@ -179,7 +179,7 @@ function stageHTML({ tex, chapters, total, quizzes }) {
       <button class="tp-btn tp-btn--speed" data-act="speed" data-r="speedBtn" type="button" aria-label="播放速度" aria-haspopup="menu" aria-expanded="false" data-tip="播放速度" data-keys="[ ]"><span data-r="speedText">1×</span></button>
       <button class="tp-btn tp-btn--subs" data-act="subs" data-r="subsBtn" type="button" aria-label="字幕" aria-pressed="true">${ICON.subs}</button>
       <button class="tp-btn" data-act="chapters" data-r="chBtn" type="button" aria-label="章节" aria-expanded="false" data-tip="章节" data-keys="1–9">${ICON.list}</button>
-      <button class="tp-btn" data-act="fullscreen" data-r="fsBtn" type="button" aria-label="全屏">${ICON.full}${ICON.unfull}</button>
+      <button class="tp-btn tp-btn--swap" data-act="fullscreen" data-r="fsBtn" type="button" aria-label="全屏">${ICON.full}${ICON.unfull}</button>
     </div>
   </div>
 </div>
@@ -365,11 +365,16 @@ export async function startPlayer(cfg = {}) {
   let quizN = 0, quizIdx = 0;
   let selfPause = false;
   let trackW = 1;
-  let stageH = 1;
 
   // ---------------------------------------------------------------- drawing
+  let drawError = null;
   function draw() {
-    app.render(t, { scale, subtitles: subs, subtitleLift: lift });
+    try {
+      app.render(t, { scale, subtitles: subs, subtitleLift: lift });
+    } catch (err) {
+      // keep the controls working; report a broken frame once
+      if (!drawError) console.error((drawError = err));
+    }
     drawnT = t;
     needDraw = false;
   }
@@ -385,10 +390,10 @@ export async function startPlayer(cfg = {}) {
       canvas.height = bh;
     }
     scale = bw / 1920;
-    stageH = r.height;
     trackW = R.track.offsetWidth || 1;
     // lift the burned-in subtitles clear of the control bar while it is shown
     const barTop = R.controls.offsetTop;
+    root.style.setProperty('--bar-gap', `${Math.round(r.height - barTop)}px`);
     const f = 1080 / r.height;
     liftMax = Math.max(0, (r.height - barTop) * f - 20);
     if (uiShown) liftTo = liftMax;
@@ -450,7 +455,7 @@ export async function startPlayer(cfg = {}) {
     if (!playing) return;
     const prev = t;
     let v;
-    if (audioOK) {
+    if (audioOK && !audio.ended) {
       const at = audio.currentTime;
       const running = !audio.paused && !audio.seeking && audio.readyState >= 3;
       if (at !== lastAT) {
@@ -461,12 +466,12 @@ export async function startPlayer(cfg = {}) {
       // the audio clock may report a hair behind our estimate: never step back for that
       if (running && v < t && t - v < 0.1) v = t;
     } else {
-      v = t + dt * rate;
+      v = t + dt * rate; // no sound, or the soundtrack ended before the timeline
     }
     setT(v);
     if (seekedFlag) seekedFlag = false;
     else checkpointCrossed(prev, t);
-    if (t >= total - 1e-3 && (!audioOK || audio.ended || audio.paused)) finish();
+    if (t >= total - 1e-3) finish();
   }
 
   function checkpointCrossed(a, b) {
@@ -704,10 +709,8 @@ export async function startPlayer(cfg = {}) {
     if (ci !== uiCh) {
       uiCh = ci;
       R.chLabelText.textContent = label(chapters[ci]);
-      rowEls.forEach((r, i) => {
-        r.classList.toggle('is-current', i === ci);
-        r.classList.toggle('is-past', i < ci);
-      });
+      rowEls.forEach((r, i) => r.classList.toggle('is-current', i === ci));
+      setMediaMeta(label(chapters[ci]));
     }
     const c = chapters[ci];
     const bar = rowEls[ci] && rowEls[ci].querySelector('.tp-ch-bar > i');
@@ -779,11 +782,11 @@ export async function startPlayer(cfg = {}) {
     const keys = (el.dataset.keys || '').split(' ').filter(Boolean);
     R.tip.innerHTML = `<span>${esc(el.dataset.tip)}</span>${keys.map((k) => `<kbd>${esc(k)}</kbd>`).join('')}`;
     const sr = stage.getBoundingClientRect(), er = el.getBoundingClientRect();
-    R.tip.classList.add('is-measure');
     const tw = R.tip.offsetWidth, th = R.tip.offsetHeight;
-    R.tip.classList.remove('is-measure');
     const x = clamp(er.left + er.width / 2 - sr.left - tw / 2, 8, sr.width - tw - 8);
-    const y = er.top - sr.top - th - 10;
+    // above the control bar for its buttons, above the element otherwise
+    const top = R.controls.contains(el) ? R.controls.getBoundingClientRect().top : er.top;
+    const y = top - sr.top - th - 8;
     R.tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
     R.tip.classList.add('is-on');
   }
@@ -836,7 +839,13 @@ export async function startPlayer(cfg = {}) {
     const c = chapters[chapterAt(ht)];
     R.pch.textContent = label(c);
     R.ptime.textContent = fmtTime(ht);
-    if (canPreview && !scrub.active) app.renderTo(pctx, ht, { scale: R.pcanvas.width / 1920, subtitles: false });
+    if (canPreview && !scrub.active) {
+      try {
+        app.renderTo(pctx, ht, { scale: R.pcanvas.width / 1920, subtitles: false });
+      } catch {
+        /* reported by draw() */
+      }
+    }
     const sr = stage.getBoundingClientRect(), tr = R.track.getBoundingClientRect();
     const x = tr.left - sr.left + (ht / total) * tr.width;
     const w = R.preview.offsetWidth;
@@ -885,6 +894,7 @@ export async function startPlayer(cfg = {}) {
   const endScrub = () => {
     if (!scrub.active) return;
     scrub.active = false;
+    if (!R.progress.matches(':focus-visible')) R.progress.blur();
     root.dataset.scrubbing = 'false';
     hover.dirty = true;
     seek(scrub.t);
@@ -913,6 +923,7 @@ export async function startPlayer(cfg = {}) {
   });
   const endVol = () => {
     volDrag = false;
+    if (!R.vol.matches(':focus-visible')) R.vol.blur();
     R.volume.classList.remove('is-drag');
   };
   R.vol.addEventListener('pointerup', endVol);
@@ -1009,17 +1020,17 @@ export async function startPlayer(cfg = {}) {
     cardN = n;
     R.cardTitle.textContent = `检验一下 · 第${c.cn}节`;
     R.cardSub.textContent = c.title;
-    R.card.classList.remove('is-on');
-    R.cardLife.style.animation = 'none';
+    R.card.classList.remove('is-on'); // restarts the countdown when it was already showing
     void R.card.offsetWidth;
-    R.cardLife.style.animation = '';
     R.card.classList.add('is-on');
   }
   function hideCard() {
     R.card.classList.remove('is-on');
     cardN = 0;
   }
+  R.cardLife.style.animationDuration = `${CARD_MS}ms`;
   R.cardLife.addEventListener('animationend', hideCard);
+  if (!checkpoints.length) R.panel.querySelector('.tp-panel-foot').hidden = true;
 
   function reachCheckpoint(cp) {
     if (autoQuiz) {
@@ -1214,6 +1225,13 @@ export async function startPlayer(cfg = {}) {
       case 'qPrev': quizIdx--; renderQuiz(); break;
       case 'qNext': quizIdx++; renderQuiz(); break;
     }
+  });
+  // a mouse click leaves no focus behind on the controls: a later key press would
+  // otherwise turn it into a focus ring and keep the bar from hiding
+  root.addEventListener('click', (e) => {
+    if (e.detail === 0) return; // activated from the keyboard: keep focus
+    const b = e.target.closest('.tp-controls button, .tp-menu button, .tp-card button');
+    if (b && document.activeElement === b) b.blur();
   });
   R.autoQuiz.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1415,8 +1433,11 @@ export async function startPlayer(cfg = {}) {
     }
   });
   audio.addEventListener('ended', () => {
-    setT(total);
-    finish();
+    // a soundtrack shorter than the timeline: the clock runs on to the end
+    if (t >= total - 0.25) {
+      setT(total);
+      finish();
+    }
   });
   // while the tab is hidden there are no animation frames: keep checkpoints working
   setInterval(() => {
@@ -1432,9 +1453,17 @@ export async function startPlayer(cfg = {}) {
   window.addEventListener('pagehide', () => savePos());
   document.addEventListener('visibilitychange', () => document.hidden && savePos());
 
+  // system media controls (keyboard media keys, lock screen): title and current chapter
+  function setMediaMeta(chapter) {
+    if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: TITLE, artist: chapter });
+    } catch {
+      /* ignore */
+    }
+  }
   if ('mediaSession' in navigator) {
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: TITLE, artist: '九节 · t 检验与自由度' });
       const h = {
         play: () => play(),
         pause: () => pause(),
