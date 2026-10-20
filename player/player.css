@@ -1,6 +1,6 @@
 /* Player for canvas-drawn videos (see README.md). The look follows Apple's video players:
    system font, neutral translucent materials, controls laid over the picture on soft
-   gradients, one accent colour. Change the tokens on .tp to restyle. */
+   gradients. No accent colour: only white and greys. Change the tokens on .tp to restyle. */
 
 :root {
   color-scheme: dark;
@@ -34,8 +34,6 @@ body {
   --material: rgba(36, 36, 38, 0.72);
   --material-solid: rgba(28, 28, 30, 0.94);
   --blur: blur(40px) saturate(180%);
-  --accent: #0a84ff;
-  --green: #30d158;
   --ink: #000;
   --shadow: 0 0.9rem 2.8rem rgba(0, 0, 0, 0.45);
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -68,11 +66,11 @@ body {
   outline: none;
 }
 :where(.tp) :focus-visible {
-  outline: 3px solid rgba(10, 132, 255, 0.9);
+  outline: 2px solid rgba(255, 255, 255, 0.85);
   outline-offset: 2px;
 }
 .tp ::selection {
-  background: rgba(10, 132, 255, 0.45);
+  background: rgba(255, 255, 255, 0.28);
   color: #fff;
 }
 .tp [hidden] {
@@ -192,7 +190,7 @@ body {
   overflow: auto;
   margin: 0;
   font-size: 0.8125rem;
-  color: #ff6961;
+  color: var(--soft);
   white-space: pre-wrap;
   user-select: text;
 }
@@ -322,7 +320,7 @@ body {
   margin: 1.1rem 0 0;
   font-size: 0.875rem;
   line-height: 1.6;
-  color: #ffd60a;
+  color: var(--soft);
 }
 .tp-start-note span {
   color: var(--dim);
@@ -373,19 +371,10 @@ body {
   justify-self: end;
 }
 
-/* back · play · forward in the middle of the row */
+/* play / pause in the middle of the row */
 .tp-transport {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-}
-.tp-transport .tp-btn {
-  width: 2.75rem;
-  height: 2.75rem;
-}
-.tp-transport .tp-btn > .tp-i {
-  width: 1.75rem;
-  height: 1.75rem;
 }
 .tp-btn--play.tp-btn {
   width: 3.25rem;
@@ -619,7 +608,7 @@ body {
   height: 0.5rem;
 }
 .tp-vol:focus-visible .tp-vol-track {
-  box-shadow: 0 0 0 2px var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
 }
 .tp-vol-fill {
   position: absolute;
@@ -660,7 +649,7 @@ body {
 }
 .tp-progress:focus-visible .tp-track {
   border-radius: 99px;
-  box-shadow: 0 0 0 2px var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
 }
 .tp-seg-hover,
 .tp-seg-fill {
@@ -860,7 +849,7 @@ body {
   color: var(--dim);
 }
 .tp-menu-item:hover {
-  background: var(--accent);
+  background: var(--fill-2);
 }
 .tp-menu-item:hover em {
   color: rgba(255, 255, 255, 0.75);
@@ -870,7 +859,7 @@ body {
 }
 .tp-menu-item:focus-visible {
   outline: none;
-  background: var(--accent);
+  background: var(--fill-2);
 }
 
 /* chapter list */
@@ -898,10 +887,6 @@ body {
   font-size: 0.8125rem;
   color: var(--dim);
   font-variant-numeric: tabular-nums;
-}
-.tp-panel-head .tp-x {
-  align-self: center;
-  margin-left: auto;
 }
 .tp-chlist {
   flex: 1 1 auto;
@@ -987,7 +972,7 @@ body {
   transform: scaleX(0);
   transform-origin: 0 50%;
 }
-/* the quiz button: an App Store–style capsule */
+/* the quiz link in a chapter row: plain text */
 .tp-ch-quiz {
   position: absolute;
   top: 50%;
@@ -995,114 +980,52 @@ body {
   display: flex;
   align-items: center;
   gap: 0.15rem;
-  height: 1.55rem;
-  margin-top: -0.775rem;
-  padding: 0 0.65rem;
+  height: 1.6rem;
+  margin-top: -0.8rem;
+  padding: 0 0.4rem;
   border: 0;
-  border-radius: 99px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
+  border-radius: 0.4rem;
+  background: none;
+  color: var(--soft);
+  font-size: 0.8125rem;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: color 0.12s;
 }
 .tp-ch-quiz .tp-i {
   display: none;
   width: 0.85rem;
   height: 0.85rem;
-  margin-left: -0.15rem;
-  stroke-width: 2.4;
+  stroke-width: 2.2;
 }
 .tp-ch-quiz:hover {
-  background: #339bff;
+  color: var(--text);
 }
 .tp-ch-quiz.is-done {
-  background: none;
   color: var(--dim);
 }
 .tp-ch-quiz.is-done .tp-i {
   display: block;
 }
 .tp-ch-quiz.is-done:hover {
-  background: var(--fill);
   color: var(--text);
 }
 .tp-panel-foot {
   flex: none;
-  margin: 0 1rem;
-  padding: 0.75rem 0 0.85rem;
+  margin: 0 0.4rem;
+  padding: 0.3rem 0 0.4rem;
   border-top: 0.5px solid var(--line);
 }
-.tp-setting {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  cursor: pointer;
-}
-.tp-setting-text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 0.1rem;
-  font-size: 0.875rem;
-}
-.tp-setting-text small {
-  font-size: 0.75rem;
-  color: var(--dim);
-}
-/* an iOS switch */
-.tp-switch {
-  position: relative;
-  flex: none;
-  width: 2.65rem;
-  height: 1.6rem;
-  padding: 0;
-  border: 0;
-  border-radius: 99px;
-  background: rgba(120, 120, 128, 0.36);
-  cursor: pointer;
-  transition: background 0.25s var(--ease);
-}
-.tp-switch i {
-  position: absolute;
-  top: 0.125rem;
-  left: 0.125rem;
-  width: 1.35rem;
-  height: 1.35rem;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  transition: transform 0.3s var(--spring);
-}
-.tp-switch[aria-checked='true'] {
-  background: var(--green);
-}
-.tp-switch[aria-checked='true'] i {
-  transform: translateX(1.05rem);
-}
 
-/* ---------------------------------------------------------------- quiz notice */
+/* ---------------------------------------------------------------- quiz prompt: one line over the picture */
 .tp-card {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 1.1rem;
+  right: 1.4rem;
   z-index: 36;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  column-gap: 0.7rem;
-  width: min(21rem, 100% - 2rem);
-  padding: 0.7rem 0.5rem 0.7rem 0.75rem;
-  border-radius: 1.1rem;
-  background: var(--material);
-  -webkit-backdrop-filter: var(--blur);
-  backdrop-filter: var(--blur);
-  box-shadow: var(--shadow), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-0.75rem) scale(0.97);
-  transition: opacity 0.3s var(--ease), transform 0.45s var(--spring), visibility 0.45s;
+  transform: translateY(-0.3rem);
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), visibility 0.4s;
 }
 .tp-card:not(.is-on) {
   pointer-events: none;
@@ -1112,36 +1035,34 @@ body {
   visibility: visible;
   transform: none;
 }
-.tp-card-icon {
-  display: grid;
-  place-items: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 0.55rem;
-  background: var(--accent);
-  color: #fff;
-}
-.tp-card-icon .tp-i {
-  width: 1.3rem;
-  height: 1.3rem;
-  stroke-width: 2;
-}
-.tp-card-text {
-  min-width: 0;
-}
-.tp-card-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.tp-card-sub {
-  overflow: hidden;
-  font-size: 0.8125rem;
+.tp-card-go {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.3rem 0.2rem;
+  border: 0;
+  background: none;
   color: var(--soft);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+  transition: color 0.15s;
 }
-/* times the notice; not drawn */
+.tp-card-go .tp-i {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2;
+  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.6));
+  transition: transform 0.2s var(--ease);
+}
+.tp-card-go:hover {
+  color: var(--text);
+}
+.tp-card-go:hover .tp-i {
+  transform: translateX(0.12rem);
+}
+/* times the prompt; not drawn */
 .tp-card-life {
   position: absolute;
   width: 0;
@@ -1161,95 +1082,20 @@ body {
   }
 }
 
-/* ---------------------------------------------------------------- buttons */
-.tp-x {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--fill);
-  color: var(--soft);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.tp-x:hover {
-  background: var(--fill-2);
-  color: var(--text);
-}
-.tp-x .tp-i {
-  width: 0.95rem;
-  height: 0.95rem;
-  stroke-width: 2.2;
-}
-.tp-x:disabled {
-  opacity: 0.35;
-  cursor: default;
-  background: var(--fill);
-}
-.tp-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  height: 2.35rem;
-  padding: 0 1.1rem;
-  border: 0;
-  border-radius: 99px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.2s var(--spring);
-}
-.tp-pill:active {
-  transform: scale(0.96);
-}
-.tp-pill--primary {
-  background: #fff;
-  color: var(--ink);
-}
-.tp-pill--primary:hover {
-  background: rgba(255, 255, 255, 0.86);
-}
-.tp-pill--primary .tp-i {
-  width: 0.95rem;
-  height: 0.95rem;
-  margin-left: -0.2rem;
-}
-.tp-pill--gray {
-  background: var(--fill-2);
-  color: var(--text);
-}
-.tp-pill--gray:hover {
-  background: var(--fill-3);
-}
-.tp-pill--tint {
-  height: 1.85rem;
-  padding: 0 0.9rem;
-  background: var(--fill-2);
-  color: var(--accent);
-  font-size: 0.8125rem;
-}
-.tp-pill--tint:hover {
-  background: var(--fill-3);
-}
-
-/* ---------------------------------------------------------------- dialogs */
+/* ---------------------------------------------------------------- quiz and shortcuts: text on the darkened picture */
 .tp-modal-wrap {
   position: absolute;
   inset: 0;
   z-index: 80;
   display: grid;
   place-items: center;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.45);
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.78);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.25s var(--ease), visibility 0.25s;
+  transition: opacity 0.3s var(--ease), visibility 0.3s;
 }
 .tp-modal-wrap:not(.is-on) {
   pointer-events: none;
@@ -1259,49 +1105,31 @@ body {
   visibility: visible;
 }
 .tp-modal {
-  position: relative;
-  width: min(36rem, 100%);
+  width: min(38rem, 100%);
   max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 1.6rem 1.6rem 1.3rem;
-  border-radius: 1.2rem;
-  background: var(--material-solid);
-  -webkit-backdrop-filter: var(--blur);
-  backdrop-filter: var(--blur);
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
-  transform: scale(0.96);
-  transition: transform 0.4s var(--spring);
   user-select: text;
   -webkit-user-select: text;
 }
 .tp-modal:focus-visible {
   outline: none;
 }
-.tp-modal-wrap.is-on .tp-modal {
-  transform: none;
-}
-.tp-modal-x {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-}
 .tp-q-kicker {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.875rem;
   color: var(--dim);
 }
 .tp-q-title {
-  margin: 0.15rem 2.25rem 0 0;
-  font-size: 1.375rem;
+  margin: 0.1rem 0 0;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.3;
 }
 .tp-q-body {
-  margin-top: 1rem;
+  margin-top: 1.1rem;
 }
 .tp-q-question {
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   line-height: 1.75;
 }
 .tp-q-question p,
@@ -1314,29 +1142,23 @@ body {
 .tp-q-explain p:last-child {
   margin-bottom: 0;
 }
-.tp-q-label {
-  display: block;
-  margin: 1.2rem 0 0.4rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--dim);
-}
 .tp-q-input {
   display: block;
   width: 100%;
-  min-height: 5.6rem;
-  max-height: 15rem;
-  padding: 0.7rem 0.85rem;
+  max-height: 12rem;
+  margin-top: 1.2rem;
+  padding: 0.5rem 0;
   border: 0;
-  border-radius: 0.7rem;
-  background: rgba(118, 118, 128, 0.24);
+  border-bottom: 1px solid var(--fill-3);
+  border-radius: 0;
+  background: none;
   color: var(--text);
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.65;
   resize: none;
   outline: none;
-  transition: box-shadow 0.2s;
+  transition: border-color 0.2s;
 }
 .tp-q-input::placeholder {
   color: var(--faint);
@@ -1344,59 +1166,88 @@ body {
 .tp-q-input:focus,
 .tp-q-input:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.85);
+  border-bottom-color: rgba(255, 255, 255, 0.7);
 }
 .tp-q-reveal {
-  margin-top: 1rem;
-  padding: 0.95rem 1.05rem 1rem;
-  border-radius: 0.8rem;
-  background: var(--fill);
+  margin-top: 1.5rem;
 }
 .tp-q-reveal.is-in {
-  animation: tp-reveal 0.35s var(--spring);
+  animation: tp-reveal 0.35s var(--ease);
 }
 @keyframes tp-reveal {
   from {
     opacity: 0;
-    transform: translateY(-0.3rem);
   }
 }
 .tp-q-sec + .tp-q-sec {
-  margin-top: 0.85rem;
-  padding-top: 0.8rem;
-  border-top: 0.5px solid var(--line);
+  margin-top: 1rem;
 }
 .tp-q-h {
-  margin-bottom: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  margin-bottom: 0.2rem;
+  font-size: 0.8125rem;
   color: var(--dim);
 }
 .tp-q-answer {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   line-height: 1.7;
 }
 .tp-q-explain {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.75;
   color: var(--soft);
 }
 .tp-q-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  margin-top: 1.3rem;
+  gap: 1.6rem;
+  margin-top: 1.6rem;
 }
 .tp-q-pager {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-right: auto;
-  font-size: 0.8125rem;
+  gap: 0.3rem;
+  margin-left: auto;
+  font-size: 0.875rem;
   color: var(--dim);
   font-variant-numeric: tabular-nums;
+}
+/* text buttons */
+.tp-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0;
+  border: 0;
+  background: none;
+  color: var(--soft);
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s, opacity 0.15s;
+}
+.tp-link:hover {
+  color: var(--text);
+}
+.tp-link--strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.tp-link--strong:hover {
+  opacity: 0.75;
+}
+.tp-link--icon {
+  padding: 0.2rem;
+}
+.tp-link--icon .tp-i {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke-width: 2;
+}
+.tp-link:disabled {
+  opacity: 0.3;
+  cursor: default;
+  color: var(--soft);
 }
 
 /* keyboard shortcuts */
@@ -1406,20 +1257,21 @@ body {
 .tp-keylist {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 2rem;
-  margin: 0.9rem 0 0;
+  column-gap: 2.5rem;
+  margin: 1rem 0 0;
 }
 .tp-keylist > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  min-height: 2.5rem;
-  border-bottom: 0.5px solid var(--line);
+  min-height: 2.4rem;
 }
 .tp-keylist dt {
   order: 2;
   white-space: nowrap;
+  color: var(--text);
+  font-size: 0.875rem;
 }
 .tp-keylist dd {
   margin: 0;
@@ -1427,10 +1279,16 @@ body {
   color: var(--soft);
 }
 .tp-keylist kbd {
-  font-size: 0.75rem;
+  min-width: 0;
+  height: auto;
+  margin: 0 0 0 0.5em;
+  padding: 0;
+  background: none;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 .tp-kbd-dash {
-  margin: 0 0.1em;
+  margin: 0 0 0 0.4em;
   color: var(--dim);
 }
 
@@ -1514,15 +1372,10 @@ body {
     padding: 0 1.1rem;
     font-size: 0.875rem;
   }
-  .tp-transport {
-    gap: 0.2rem;
-  }
-  .tp-transport .tp-btn,
   .tp-btn--play.tp-btn {
     width: 2.4rem;
     height: 2.4rem;
   }
-  .tp-transport .tp-btn > .tp-i,
   .tp-btn--play > .tp-i {
     width: 1.5rem;
     height: 1.5rem;
@@ -1531,37 +1384,26 @@ body {
     font-size: 0.75rem;
   }
   .tp-card {
-    top: 0.5rem;
-    right: 0.5rem;
-    width: auto;
-    max-width: calc(100% - 1rem);
-    column-gap: 0.45rem;
-    padding: 0.35rem 0.35rem 0.35rem 0.4rem;
-    border-radius: 0.8rem;
+    top: 0.4rem;
+    right: 0.6rem;
   }
-  .tp-card-icon {
-    width: 1.6rem;
-    height: 1.6rem;
-    border-radius: 0.4rem;
-  }
-  .tp-card-icon .tp-i {
-    width: 1rem;
-    height: 1rem;
-  }
-  .tp-card-title {
+  .tp-card-go {
     font-size: 0.75rem;
   }
-  .tp-card-sub {
-    display: none;
+  .tp-modal-wrap {
+    padding: 0.9rem 1.2rem;
   }
-  .tp-card .tp-pill--tint {
-    height: 1.5rem;
-    padding: 0 0.65rem;
-    font-size: 0.75rem;
+  .tp-q-title {
+    font-size: 1.1rem;
   }
-  .tp-card .tp-x {
-    width: 1.4rem;
-    height: 1.4rem;
+  .tp-q-question,
+  .tp-q-answer {
+    font-size: 0.875rem;
+  }
+  .tp-q-explain,
+  .tp-q-input,
+  .tp-link {
+    font-size: 0.8125rem;
   }
   .tp-btn {
     width: 2.2rem;

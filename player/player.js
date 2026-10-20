@@ -79,19 +79,15 @@ const ICON = {
   play: svg('<path class="tp-solid" d="M7.6 5.3v13.4c0 .9 1 1.4 1.7.9l10.4-6.7c.7-.4.7-1.4 0-1.8L9.3 4.4c-.7-.5-1.7 0-1.7.9z"/>'),
   pause: svg('<rect class="tp-solid" x="6.2" y="4.8" width="4" height="14.4" rx="1.3"/><rect class="tp-solid" x="13.8" y="4.8" width="4" height="14.4" rx="1.3"/>'),
   replay: svg('<path d="M5.3 14.6A7.2 7.2 0 1 0 7.2 7"/><path d="M6.6 3.6v3.9h3.9"/>'),
-  back: svg('<path d="M11.2 4.6h.8a8 8 0 1 1-8 8"/><path d="m13.7 2.1-2.5 2.5 2.5 2.5"/><text x="12" y="15.4">5</text>'),
-  fwd: svg('<path d="M12.8 4.6H12a8 8 0 1 0 8 8"/><path d="m10.3 2.1 2.5 2.5-2.5 2.5"/><text x="12" y="15.4">5</text>'),
   vol: svg('<path class="tp-solid" d="M3.4 9.4c0-.6.4-1 1-1h2.5l4-3.5c.6-.5 1.6-.1 1.6.8v12.6c0 .9-1 1.3-1.6.8l-4-3.5H4.4c-.6 0-1-.4-1-1z"/><path class="tp-w1" d="M15.4 9.3a3.9 3.9 0 0 1 0 5.4"/><path class="tp-w2" d="M18.1 6.6a7.6 7.6 0 0 1 0 10.8"/><path class="tp-x" d="m15.6 9.7 4.6 4.6m0-4.6-4.6 4.6"/>'),
   subs: svg('<path class="tp-cc" d="M5.6 4.6h12.8a2.6 2.6 0 0 1 2.6 2.6v7.6a2.6 2.6 0 0 1-2.6 2.6h-7.3l-4 3c-.4.3-1 0-1-.5v-2.5h-.5A2.6 2.6 0 0 1 3 14.8V7.2a2.6 2.6 0 0 1 2.6-2.6z"/><path class="tp-cc-l" d="M7.4 9.4h9.2M7.4 12.8h5.6"/>'),
   speed: svg('<path d="M4.3 17.2a8.6 8.6 0 1 1 15.4 0"/><path d="m12 13.6 3.7-4.4"/><circle class="tp-solid" cx="12" cy="13.6" r="1.7"/>'),
   list: svg('<path d="M9.4 6.6h10M9.4 12h10M9.4 17.4h10"/><circle class="tp-solid" cx="5" cy="6.6" r="1.25"/><circle class="tp-solid" cx="5" cy="12" r="1.25"/><circle class="tp-solid" cx="5" cy="17.4" r="1.25"/>'),
   full: svg('<path d="M14 4.4h5.6V10M19.6 4.4l-6 6M10 19.6H4.4V14M4.4 19.6l6-6"/>'),
   unfull: svg('<path d="M19.6 10H14V4.4M14 10l6-6M4.4 14H10v5.6M10 14l-6 6"/>'),
-  close: svg('<path d="m7 7 10 10m0-10L7 17"/>'),
   check: svg('<path d="m5.8 12.4 4 4 8.4-8.6"/>'),
   chevron: svg('<path d="m10 7.4 4.6 4.6-4.6 4.6"/>'),
   left: svg('<path d="m14 7.4-4.6 4.6 4.6 4.6"/>'),
-  quiz: svg('<circle cx="12" cy="12" r="8.6"/><path d="M9.7 9.7a2.4 2.4 0 1 1 3.3 2.2c-.6.3-1 .8-1 1.5v.4"/><circle class="tp-solid" cx="12" cy="16.5" r="1.1"/>'),
 };
 
 // ---------------------------------------------------------------- markup
@@ -134,13 +130,7 @@ function stageHTML({ video, chapters, total, quizzes }) {
 <div class="tp-osd" data-r="osd" role="status" aria-live="polite"></div>
 
 <div class="tp-card" data-r="card" role="status" aria-live="polite">
-  <div class="tp-card-icon">${ICON.quiz}</div>
-  <div class="tp-card-text">
-    <div class="tp-card-title" data-r="cardTitle"></div>
-    <div class="tp-card-sub" data-r="cardSub"></div>
-  </div>
-  <button class="tp-pill tp-pill--tint tp-card-go" data-r="cardGo" type="button">做题</button>
-  <button class="tp-x tp-card-x" data-r="cardX" type="button" aria-label="关闭">${ICON.close}</button>
+  <button class="tp-card-go" data-r="cardGo" type="button"><span data-r="cardTitle"></span>${ICON.chevron}</button>
   <i class="tp-card-life" data-r="cardLife"></i>
 </div>
 
@@ -151,9 +141,7 @@ function stageHTML({ video, chapters, total, quizzes }) {
       <span class="tp-meta-ch"><span class="tp-meta-ch-text" data-r="chLabelText"></span>${ICON.chevron}</span>
     </button>
     <div class="tp-transport">
-      <button class="tp-btn" data-act="back" type="button" aria-label="后退 5 秒" data-tip="后退 5 秒" data-keys="←">${ICON.back}</button>
       <button class="tp-btn tp-btn--play" data-act="play" data-r="playBtn" type="button" aria-label="播放">${ICON.play}${ICON.pause}${ICON.replay}</button>
-      <button class="tp-btn" data-act="fwd" type="button" aria-label="前进 5 秒" data-tip="前进 5 秒" data-keys="→">${ICON.fwd}</button>
     </div>
     <div class="tp-group">
       <div class="tp-volume" data-r="volume">
@@ -193,34 +181,28 @@ function stageHTML({ video, chapters, total, quizzes }) {
   <header class="tp-panel-head">
     <h2>章节</h2>
     <span class="tp-panel-meta">${meta}</span>
-    <button class="tp-x" data-act="closePanel" type="button" aria-label="关闭">${ICON.close}</button>
   </header>
   <ol class="tp-chlist" data-r="chList">${rows}</ol>
   <footer class="tp-panel-foot">
-    <label class="tp-setting" for="tp-autoquiz">
-      <span class="tp-setting-text">每节结束时暂停做题<small>到有题的一节末尾时暂停，并打开题目</small></span>
-      <button class="tp-switch" id="tp-autoquiz" data-r="autoQuiz" role="switch" aria-checked="false" type="button"><i></i></button>
-    </label>
+    <button class="tp-menu-item" data-r="autoQuiz" role="menuitemcheckbox" aria-checked="false" type="button">${ICON.check}<span>到小题时暂停</span></button>
   </footer>
 </section>
 
 <div class="tp-modal-wrap" data-r="modalWrap">
   <div class="tp-modal" data-r="modal" role="dialog" aria-modal="true" aria-labelledby="tp-q-title" tabindex="-1">
-    <button class="tp-x tp-modal-x" data-act="closeQuiz" type="button" aria-label="关闭">${ICON.close}</button>
     <div class="tp-q-kicker" data-r="qKicker"></div>
     <h2 class="tp-q-title" id="tp-q-title" data-r="qTitle"></h2>
     <div class="tp-q-body" data-r="qBody"></div>
     <div class="tp-q-actions">
+      <button class="tp-link" data-act="reveal" data-r="qReveal" type="button">显示答案</button>
+      <button class="tp-link tp-link--strong" data-act="resume" type="button">继续播放</button>
       <div class="tp-q-pager" data-r="qPager"></div>
-      <button class="tp-pill tp-pill--gray" data-act="reveal" data-r="qReveal" type="button">显示答案</button>
-      <button class="tp-pill tp-pill--primary" data-act="resume" type="button">${ICON.play}<span>继续播放</span></button>
     </div>
   </div>
 </div>
 
 <div class="tp-modal-wrap tp-keys-wrap" data-r="keysWrap">
   <div class="tp-modal tp-keys" data-r="keys" role="dialog" aria-modal="true" aria-labelledby="tp-keys-title" tabindex="-1">
-    <button class="tp-x tp-modal-x" data-act="closeKeys" type="button" aria-label="关闭">${ICON.close}</button>
     <h2 class="tp-q-title" id="tp-keys-title">键盘快捷键</h2>
     <dl class="tp-keylist">
       <div><dt>${kbd('空格')}${kbd('K')}</dt><dd>播放 / 暂停</dd></div>
@@ -1018,8 +1000,7 @@ export async function startPlayer(cfg = {}) {
     const c = chapters.find((x) => x.n === n);
     if (!c) return;
     cardN = n;
-    R.cardTitle.textContent = `检验一下 · 第${c.label}节`;
-    R.cardSub.textContent = c.title;
+    R.cardTitle.textContent = `第${c.label}节的小题`;
     R.card.classList.remove('is-on'); // restarts the countdown when it was already showing
     void R.card.offsetWidth;
     R.card.classList.add('is-on');
@@ -1067,8 +1048,7 @@ export async function startPlayer(cfg = {}) {
     const revealed = !!done[key];
     R.qBody.innerHTML = `
       <div class="tp-q-question">${paras(q.question)}</div>
-      <label class="tp-q-label" for="tp-q-answer">你的答案</label>
-      <textarea class="tp-q-input" id="tp-q-answer" rows="3" placeholder="先想一想，可以写在这里，也可以不写"></textarea>
+      <textarea class="tp-q-input" id="tp-q-answer" rows="1" aria-label="你的答案" placeholder="写下你的想法（可以不写）"></textarea>
       <div class="tp-q-reveal" ${revealed ? '' : 'hidden'}>
         <div class="tp-q-sec"><div class="tp-q-h">答案</div><div class="tp-q-answer">${paras(q.answer)}</div></div>
         ${q.explain ? `<div class="tp-q-sec"><div class="tp-q-h">解析</div><div class="tp-q-explain">${paras(q.explain)}</div></div>` : ''}
@@ -1093,7 +1073,7 @@ export async function startPlayer(cfg = {}) {
     R.qReveal.setAttribute('aria-expanded', String(revealed));
     R.qPager.innerHTML =
       list.length > 1
-        ? `<button class="tp-x" data-act="qPrev" type="button" aria-label="上一题" ${quizIdx === 0 ? 'disabled' : ''}>${ICON.left}</button><span>${quizIdx + 1} / ${list.length}</span><button class="tp-x" data-act="qNext" type="button" aria-label="下一题" ${quizIdx === list.length - 1 ? 'disabled' : ''}>${ICON.chevron}</button>`
+        ? `<button class="tp-link tp-link--icon" data-act="qPrev" type="button" aria-label="上一题" ${quizIdx === 0 ? 'disabled' : ''}>${ICON.left}</button><span>${quizIdx + 1} / ${list.length}</span><button class="tp-link tp-link--icon" data-act="qNext" type="button" aria-label="下一题" ${quizIdx === list.length - 1 ? 'disabled' : ''}>${ICON.chevron}</button>`
         : '';
   }
   function toggleReveal() {
@@ -1238,12 +1218,11 @@ export async function startPlayer(cfg = {}) {
     setAutoQuiz(!autoQuiz);
   });
   R.cardGo.addEventListener('click', () => openQuiz(cardN));
-  R.cardX.addEventListener('click', hideCard);
   R.modalWrap.addEventListener('pointerdown', (e) => {
     if (e.target === R.modalWrap) closeQuiz(false);
   });
   R.keysWrap.addEventListener('pointerdown', (e) => {
-    if (e.target === R.keysWrap) closeKeys();
+    closeKeys();
   });
 
   // clicks on the picture: play / pause, or close an open menu
