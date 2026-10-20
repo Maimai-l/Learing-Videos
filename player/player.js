@@ -82,7 +82,6 @@ const ICON = {
   vol: svg('<path class="tp-solid" d="M3.4 9.4c0-.6.4-1 1-1h2.5l4-3.5c.6-.5 1.6-.1 1.6.8v12.6c0 .9-1 1.3-1.6.8l-4-3.5H4.4c-.6 0-1-.4-1-1z"/><path class="tp-w1" d="M15.4 9.3a3.9 3.9 0 0 1 0 5.4"/><path class="tp-w2" d="M18.1 6.6a7.6 7.6 0 0 1 0 10.8"/><path class="tp-x" d="m15.6 9.7 4.6 4.6m0-4.6-4.6 4.6"/>'),
   subs: svg('<path class="tp-cc" d="M5.6 4.6h12.8a2.6 2.6 0 0 1 2.6 2.6v7.6a2.6 2.6 0 0 1-2.6 2.6h-7.3l-4 3c-.4.3-1 0-1-.5v-2.5h-.5A2.6 2.6 0 0 1 3 14.8V7.2a2.6 2.6 0 0 1 2.6-2.6z"/><path class="tp-cc-l" d="M7.4 9.4h9.2M7.4 12.8h5.6"/>'),
   speed: svg('<path d="M4.3 17.2a8.6 8.6 0 1 1 15.4 0"/><path d="m12 13.6 3.7-4.4"/><circle class="tp-solid" cx="12" cy="13.6" r="1.7"/>'),
-  list: svg('<path d="M9.4 6.6h10M9.4 12h10M9.4 17.4h10"/><circle class="tp-solid" cx="5" cy="6.6" r="1.25"/><circle class="tp-solid" cx="5" cy="12" r="1.25"/><circle class="tp-solid" cx="5" cy="17.4" r="1.25"/>'),
   full: svg('<path d="M14 4.4h5.6V10M19.6 4.4l-6 6M10 19.6H4.4V14M4.4 19.6l6-6"/>'),
   unfull: svg('<path d="M19.6 10H14V4.4M14 10l6-6M4.4 14H10v5.6M10 14l-6 6"/>'),
   check: svg('<path d="m5.8 12.4 4 4 8.4-8.6"/>'),
@@ -90,6 +89,7 @@ const ICON = {
   eye: svg('<path d="M2.6 12S6 5.6 12 5.6 21.4 12 21.4 12 18 18.4 12 18.4 2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.9"/>'),
   eyeOff: svg('<path d="M2.6 12S6 5.6 12 5.6 21.4 12 21.4 12 18 18.4 12 18.4 2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.9"/><path d="m4.2 4.2 15.6 15.6"/>'),
   close: svg('<path d="m7 7 10 10m0-10L7 17"/>'),
+  gear: svg('<path d="M10.3 3.6h3.4l.5 2.3 1.6.9 2.2-.8 1.7 2.9-1.8 1.6v1.9l1.8 1.6-1.7 2.9-2.2-.8-1.6.9-.5 2.3h-3.4l-.5-2.3-1.6-.9-2.2.8-1.7-2.9 1.8-1.6v-1.9L4.3 8.9 6 6l2.2.8 1.6-.9z"/><circle cx="12" cy="12" r="2.8"/>'),
   chevron: svg('<path d="m10 7.4 4.6 4.6-4.6 4.6"/>'),
   left: svg('<path d="m14 7.4-4.6 4.6 4.6 4.6"/>'),
 };
@@ -116,13 +116,7 @@ function stageHTML({ video, chapters, total, quizzes }) {
     .map((c) => `<i class="tp-mark" style="left:${(c.quizAt / total) * 100}%"></i>`)
     .join('');
   const rows = chapters
-    .map((c, i) => {
-      const q = quizzes.has(c.n);
-      return `<li class="tp-ch" data-i="${i}">
-        <button class="tp-menu-item tp-ch-main" data-seek="${i}" type="button">${ICON.check}<span class="tp-ch-title">${esc(c.title)}</span><span class="tp-ch-time">${fmtTime(c.start)}</span></button>
-        ${q ? `<button class="tp-ch-quiz" data-quiz="${c.n}" type="button" aria-label="第${esc(c.label)}节的小题">${ICON.quiz}</button>` : ''}
-      </li>`;
-    })
+    .map((c, i) => `<li class="tp-ch" data-i="${i}"><button class="tp-menu-item tp-ch-main" data-seek="${i}" type="button">${esc(c.title)}</button></li>`)
     .join('');
   return `
 <div class="tp-scrim" aria-hidden="true"></div>
@@ -131,7 +125,10 @@ function stageHTML({ video, chapters, total, quizzes }) {
 
 <div class="tp-controls" data-r="controls">
   <div class="tp-row">
-    <button class="tp-btn tp-btn--play" data-act="play" data-r="playBtn" type="button" aria-label="播放">${ICON.play}${ICON.pause}${ICON.replay}</button>
+    <div class="tp-left">
+      <button class="tp-btn tp-btn--play" data-act="play" data-r="playBtn" type="button" aria-label="播放">${ICON.play}${ICON.pause}${ICON.replay}</button>
+      <button class="tp-chbtn" data-act="chapters" data-r="chBtn" type="button" aria-label="章节" aria-expanded="false"${chapters.length > 1 ? '' : ' hidden'}><span class="tp-chbtn-text" data-r="chLabel"></span>${ICON.chevron}</button>
+    </div>
     <div class="tp-group">
       <div class="tp-volume" data-r="volume">
         <div class="tp-vol" data-r="vol" role="slider" tabindex="0" aria-label="音量" aria-valuemin="0" aria-valuemax="100">
@@ -141,7 +138,7 @@ function stageHTML({ video, chapters, total, quizzes }) {
       </div>
       <button class="tp-btn tp-btn--subs" data-act="subs" data-r="subsBtn" type="button" aria-label="字幕" aria-pressed="true">${ICON.subs}</button>
       <button class="tp-btn tp-btn--speed" data-act="speed" data-r="speedBtn" type="button" aria-label="播放速度" aria-haspopup="menu" aria-expanded="false">${ICON.speed}<span data-r="speedText">1×</span></button>
-      <button class="tp-btn" data-act="chapters" data-r="chBtn" type="button" aria-label="章节" aria-expanded="false">${ICON.list}</button>
+      ${quizzes.size ? `<button class="tp-btn" data-act="settings" data-r="setBtn" type="button" aria-label="设置" aria-haspopup="menu" aria-expanded="false">${ICON.gear}</button>` : ''}
       <button class="tp-btn tp-btn--swap" data-act="fullscreen" data-r="fsBtn" type="button" aria-label="全屏">${ICON.full}${ICON.unfull}</button>
     </div>
   </div>
@@ -162,9 +159,13 @@ function stageHTML({ video, chapters, total, quizzes }) {
   ${SPEEDS.map((r) => `<button class="tp-menu-item" role="menuitemradio" data-rate="${r}" type="button">${ICON.check}<span>${fmtRate(r)}</span></button>`).join('')}
 </div>
 
-<section class="tp-panel" data-r="panel" aria-label="章节">
+<div class="tp-menu tp-settings" data-r="setMenu" role="menu" aria-label="设置">
+  <button class="tp-menu-item tp-setting" data-r="autoQuiz" role="menuitemcheckbox" aria-checked="false" type="button"><span>自动暂停</span><i class="tp-switch"><i></i></i></button>
+</div>
+
+<div class="tp-menu tp-chmenu" data-r="panel" role="menu" aria-label="章节">
   <ol class="tp-chlist" data-r="chList">${rows}</ol>
-</section>
+</div>
 
 <aside class="tp-side" data-r="modalWrap" aria-label="小题">
   <div class="tp-side-inner" data-r="modal" tabindex="-1">
@@ -283,7 +284,7 @@ export async function startPlayer(cfg = {}) {
   let ended = false;
   let rate = SPEEDS.includes(S.rate) ? S.rate : 1;
   let subs = S.subs !== false;
-  const autoQuiz = video.pauseAtQuiz === true; // pause and open the quiz when it is reached
+  let autoQuiz = typeof S.pauseAtQuiz === 'boolean' ? S.pauseAtQuiz : video.pauseAtQuiz === true; // pause and open the quiz when it is reached
   let volume = typeof S.volume === 'number' ? clamp(S.volume) : 1;
   let muted = S.muted === true;
   let audioOK = !!video.audio;
@@ -300,7 +301,7 @@ export async function startPlayer(cfg = {}) {
   let uiShown = true;
   let idleTimer = 0;
   let overControls = false;
-  let menuOpen = false, panelOpen = false, modalOpen = false;
+  let menuOpen = false, panelOpen = false, setOpen = false, modalOpen = false;
   let modalReturn = null;
   let quizN = 0, quizIdx = 0;
   let selfPause = false;
@@ -354,6 +355,7 @@ export async function startPlayer(cfg = {}) {
     if (hover.on) hover.dirty = true;
     if (menuOpen) placeMenu();
     if (panelOpen) placePanel();
+    if (setOpen) placeSet();
   }
   let lastDpr = window.devicePixelRatio || 1;
   new ResizeObserver(layout).observe(stage);
@@ -630,6 +632,7 @@ export async function startPlayer(cfg = {}) {
     if (ci !== uiCh) {
       uiCh = ci;
       rowEls.forEach((r, i) => r.classList.toggle('is-current', i === ci));
+      R.chLabel.textContent = chapters[ci].title;
       setMediaMeta(label(chapters[ci]));
     }
   }
@@ -653,7 +656,7 @@ export async function startPlayer(cfg = {}) {
     setLiftTarget(0);
   }
   function keepUI() {
-    return !playing || scrub.active || overControls || menuOpen || panelOpen || phase !== 'main' || !!R.controls.querySelector(':focus-visible');
+    return !playing || scrub.active || overControls || menuOpen || panelOpen || setOpen || phase !== 'main' || !!R.controls.querySelector(':focus-visible');
   }
   function armIdle() {
     clearTimeout(idleTimer);
@@ -794,17 +797,20 @@ export async function startPlayer(cfg = {}) {
 
   // ---------------------------------------------------------------- menus & panel
   // a pop-up sits just above its button, inside the picture
-  function placePop(el, btn) {
+  function placePop(el, btn, alignLeft = false) {
     const sr = stage.getBoundingClientRect(), br = btn.getBoundingClientRect();
     const w = el.offsetWidth;
-    const x = clamp(br.left + br.width / 2 - sr.left - w / 2, 10, sr.width - w - 10);
+    const x0 = alignLeft ? br.left - sr.left : br.left + br.width / 2 - sr.left - w / 2;
+    const x = clamp(x0, 10, sr.width - w - 10);
     el.style.left = `${Math.round(x)}px`;
     el.style.bottom = `${Math.round(sr.bottom - br.top + 8)}px`;
   }
   const placeMenu = () => placePop(R.speedMenu, R.speedBtn);
-  const placePanel = () => placePop(R.panel, R.chBtn);
+  const placePanel = () => placePop(R.panel, R.chBtn, true);
+  const placeSet = () => R.setBtn && placePop(R.setMenu, R.setBtn);
   function openMenu() {
     if (panelOpen) closePanel(false);
+    if (setOpen) closeSet();
     menuOpen = true;
     placeMenu();
     R.speedMenu.classList.add('is-on');
@@ -823,6 +829,7 @@ export async function startPlayer(cfg = {}) {
   }
   function openPanel() {
     if (menuOpen) closeMenu();
+    if (setOpen) closeSet();
     panelOpen = true;
     placePanel();
     R.panel.classList.add('is-on');
@@ -833,8 +840,10 @@ export async function startPlayer(cfg = {}) {
     updateUI();
     const cur = R.chList.querySelector('.is-current .tp-ch-main');
     if (cur) {
-      cur.scrollIntoView({ block: 'nearest' });
-      if (R.chBtn.matches(':focus-visible')) cur.focus();
+      // scroll the list only (scrollIntoView would also shift the picture)
+      const top = cur.offsetTop - R.chList.clientHeight / 2 + cur.offsetHeight / 2;
+      R.chList.scrollTop = Math.max(0, top);
+      if (R.chBtn.matches(':focus-visible')) cur.focus({ preventScroll: true });
     }
   }
   function closePanel(focusBack = false) {
@@ -846,14 +855,38 @@ export async function startPlayer(cfg = {}) {
     if (focusBack) R.chBtn.focus();
     armIdle();
   }
+  function openSet() {
+    if (menuOpen) closeMenu();
+    if (panelOpen) closePanel(false);
+    setOpen = true;
+    placeSet();
+    R.setMenu.classList.add('is-on');
+    R.setBtn.setAttribute('aria-expanded', 'true');
+    showUI();
+    if (R.setBtn.matches(':focus-visible')) R.autoQuiz.focus();
+  }
+  function closeSet(focusBack = false) {
+    if (!setOpen) return;
+    setOpen = false;
+    R.setMenu.classList.remove('is-on');
+    R.setBtn.setAttribute('aria-expanded', 'false');
+    if (focusBack) R.setBtn.focus();
+    armIdle();
+  }
+  function setAutoQuiz(on) {
+    autoQuiz = on;
+    R.autoQuiz.setAttribute('aria-checked', String(on));
+    S.pauseAtQuiz = on;
+    store.save();
+  }
   function closeMenus() {
     closeMenu();
     closePanel();
+    closeSet();
   }
 
   // ---------------------------------------------------------------- quizzes
   const qKey = (n, i) => `${n}.${i}`;
-  const answers = S.answers && typeof S.answers === 'object' ? S.answers : (S.answers = {});
   const done = S.done && typeof S.done === 'object' ? S.done : (S.done = {});
   function refreshDone() {
     for (const b of R.chList.querySelectorAll('[data-quiz]')) {
@@ -907,32 +940,13 @@ export async function startPlayer(cfg = {}) {
   function renderQuiz() {
     const list = quizzes.get(quizN);
     const q = list[quizIdx];
-    const key = qKey(quizN, quizIdx);
-    const revealed = !!done[key];
     R.qBody.innerHTML = `
       <div class="tp-q-question">${paras(q.question)}</div>
-      <textarea class="tp-q-input" id="tp-q-answer" rows="1" aria-label="你的答案"></textarea>
-      <div class="tp-q-reveal" ${revealed ? '' : 'hidden'}>
+      <div class="tp-q-reveal" hidden>
         <div class="tp-q-answer">${paras(q.answer)}</div>
         ${q.explain ? `<div class="tp-q-explain">${paras(q.explain)}</div>` : ''}
       </div>`;
-    const ta = R.qBody.querySelector('textarea');
-    ta.value = answers[key] || '';
-    const grow = () => {
-      ta.style.height = 'auto';
-      ta.style.height = `${Math.min(ta.scrollHeight + 2, 240)}px`;
-    };
-    let saveTimer = 0;
-    ta.addEventListener('input', () => {
-      grow();
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => {
-        answers[key] = ta.value;
-        store.save();
-      }, 300);
-    });
-    requestAnimationFrame(grow);
-    setRevealBtn(revealed);
+    setRevealBtn(false);
     R.qPager.innerHTML =
       list.length > 1
         ? `<button class="tp-icon" data-act="qPrev" type="button" aria-label="上一题" ${quizIdx === 0 ? 'disabled' : ''}>${ICON.left}</button><span>${quizIdx + 1} / ${list.length}</span><button class="tp-icon" data-act="qNext" type="button" aria-label="下一题" ${quizIdx === list.length - 1 ? 'disabled' : ''}>${ICON.chevron}</button>`
@@ -954,16 +968,14 @@ export async function startPlayer(cfg = {}) {
       box.classList.remove('is-in');
       void box.offsetWidth;
       box.classList.add('is-in');
-      requestAnimationFrame(() => box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+      requestAnimationFrame(() => {
+        const over = box.offsetTop + box.offsetHeight - (R.modalWrap.scrollTop + R.modalWrap.clientHeight);
+        if (over > 0) R.modalWrap.scrollBy({ top: over + 16, behavior: 'smooth' });
+      });
     }
   }
   function closeQuiz(resume = false) {
     if (!modalOpen) return;
-    const ta = R.qBody.querySelector('textarea');
-    if (ta) {
-      answers[qKey(quizN, quizIdx)] = ta.value;
-      store.save();
-    }
     modalOpen = false;
     R.modalWrap.classList.remove('is-on');
     root.dataset.side = 'off';
@@ -1022,6 +1034,7 @@ export async function startPlayer(cfg = {}) {
       case 'mute': toggleMute(); break;
       case 'subs': setSubs(!subs); break;
       case 'speed': menuOpen ? closeMenu() : openMenu(); break;
+      case 'settings': setOpen ? closeSet() : openSet(); break;
       case 'chapters': panelOpen ? closePanel() : openPanel(); break;
       case 'closePanel': closePanel(true); break;
       case 'fullscreen': toggleFullscreen(); break;
@@ -1042,12 +1055,13 @@ export async function startPlayer(cfg = {}) {
     if (b && document.activeElement === b) b.blur();
   });
   R.card.addEventListener('click', () => openQuiz(cardN));
+  R.autoQuiz.addEventListener('click', () => setAutoQuiz(!autoQuiz));
 
   // clicks on the picture: play / pause, or close an open menu
   canvas.tabIndex = -1;
   canvas.addEventListener('click', () => {
     if (phase !== 'main') return;
-    if (menuOpen || panelOpen) {
+    if (menuOpen || panelOpen || setOpen) {
       closeMenus();
       return;
     }
@@ -1063,6 +1077,7 @@ export async function startPlayer(cfg = {}) {
   root.addEventListener('pointerdown', (e) => {
     if (menuOpen && !R.speedMenu.contains(e.target) && !R.speedBtn.contains(e.target)) closeMenu();
     if (panelOpen && !R.panel.contains(e.target) && !e.target.closest('[data-act="chapters"]') && e.target !== canvas) closePanel();
+    if (setOpen && !R.setMenu.contains(e.target) && !R.setBtn.contains(e.target) && e.target !== canvas) closeSet();
   });
 
   // mouse activity shows the controls
@@ -1079,7 +1094,7 @@ export async function startPlayer(cfg = {}) {
   });
   R.controls.addEventListener('pointerenter', () => (overControls = true));
   R.controls.addEventListener('pointerleave', () => (overControls = false));
-  for (const el of [R.panel, R.speedMenu, R.card]) {
+  for (const el of [R.panel, R.speedMenu, R.setMenu, R.card]) {
     el.addEventListener('pointerenter', () => (overControls = true));
     el.addEventListener('pointerleave', () => (overControls = false));
   }
@@ -1172,6 +1187,7 @@ export async function startPlayer(cfg = {}) {
       case 'Escape':
         if (menuOpen) closeMenu(true);
         else if (panelOpen) closePanel(true);
+        else if (setOpen) closeSet(true);
         else if (R.card.classList.contains('is-on')) hideCard();
         else handled = false;
         break;
@@ -1280,6 +1296,7 @@ export async function startPlayer(cfg = {}) {
   applyVolume();
   updateFullscreen();
   refreshDone();
+  setAutoQuiz(autoQuiz);
   updatePlayState();
   root.dataset.ui = 'shown';
   root.dataset.phase = 'start';
