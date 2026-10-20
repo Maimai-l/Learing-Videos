@@ -1,0 +1,96 @@
+# Render "t 检验与自由度" on GitHub's servers and publish it as a release.
+#
+# Inputs come from the repository and from the "resources" release (narration and
+# music). Outputs, as release assets: the MP4, the single-file HTML player with its
+# soundtrack, and the subtitles. Asset names are ASCII because GitHub rewrites other
+# characters; the release page shows the Chinese names as labels.
+#
+# Run it from the Actions tab (Run workflow). A full render takes about 1.5–2 hours.
+name: t-test video
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag for the outputs
+        default: t-test-video
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: t-test-video
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: t-test
+    env:
+      TAG: ${{ inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: t-test/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          npm ci
+          npx playwright install --with-deps chromium
+          pip install numpy fonttools brotli
+
+      - name: Download narration and music
+        run: |
+          mkdir -p build/audio
+          gh release download resources --repo "$GITHUB_REPOSITORY" -p BGM.wav -p voice_over_ttest.wav -D build/audio
+
+      - name: Timeline, formulas, soundtrack
+        run: |
+          node tools/build-timeline.mjs
+          node tools/build-tex.mjs
+          python3 tools/mix.py build/timeline.json build/audio/voice_over_ttest.wav build/audio/BGM.wav build/audio/mix
+
+      - name: Render the video
+        run: node tools/render.mjs --out out/t-test.mp4 --audio build/audio/mix.wav --crf 17 --workers 3
+
+      - name: Subtitles and HTML player
+        run: |
+          node tools/export-srt.mjs out/t-test.srt
+          node tools/bundle.mjs --name t-test
+
+      - name: Publish the release
+        run: |
+          files=(
+            "out/t-test.mp4#t检验与自由度.mp4（1080p60，字幕在画面里）"
+            "out/t-test.html#t检验与自由度.html（网页版，和 .m4a 放在同一个文件夹）"
+            "out/t-test.m4a#t检验与自由度.m4a（网页版的音轨）"
+            "out/t-test.srt#t检验与自由度.srt（字幕）"
+          )
+          notes="t 检验与自由度：为什么除以 n − 1，t 分布从哪里来。
+
+          - t-test.mp4：完整视频，22 分钟，1080p、60 帧，字幕已烧进画面。
+          - t-test.html 和 t-test.m4a：网页版。两个文件下载到同一个文件夹，用浏览器打开 .html；有章节跳转和每节小题。
+          - t-test.srt：字幕文件。
+
+          由 ${GITHUB_SHA::7} 渲染。"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "${files[@]}" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "t 检验与自由度（成品）" --notes "$notes"
+          fi

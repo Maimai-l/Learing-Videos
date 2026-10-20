@@ -4,7 +4,7 @@
 //   node tools/snap.mjs out/snaps --sheet 6 76 24          (contact sheet: 24 frames in 6..76)
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import { chromium } from 'playwright';
 import { startServer } from './server.mjs';
 
 const args = process.argv.slice(2);

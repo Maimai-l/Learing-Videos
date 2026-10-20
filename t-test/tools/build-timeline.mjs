@@ -10,7 +10,10 @@ import { CONFIG } from '../src/config.js';
 import { toDisplay } from '../src/engine/subtitles.js';
 
 const root = new URL('..', import.meta.url).pathname;
-const align = JSON.parse(fs.readFileSync(root + 'build/align.json', 'utf8'));
+// build/align.json is written by tools/align.py; data/align.json is the committed copy for the
+// current narration, so the timeline can be rebuilt without running speech recognition.
+const alignFile = fs.existsSync(root + 'build/align.json') ? root + 'build/align.json' : root + 'data/align.json';
+const align = JSON.parse(fs.readFileSync(alignFile, 'utf8'));
 const srt = fs.readFileSync(root + 'materials/旁白.srt', 'utf8');
 
 const paras = align.paragraphs;

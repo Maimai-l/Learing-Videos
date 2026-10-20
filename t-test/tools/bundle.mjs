@@ -14,7 +14,9 @@ import * as esbuild from 'esbuild';
 const root = path.resolve(new URL('..', import.meta.url).pathname);
 const rel = (p) => path.relative(root, p) || '.';
 const artifact = process.argv.includes('--artifact');
-const NAME = 't检验与自由度';
+// --name t-test writes out/t-test.html + out/t-test.m4a (ASCII names for release assets)
+const nameArg = process.argv.indexOf('--name');
+const NAME = nameArg > 0 && process.argv[nameArg + 1] ? process.argv[nameArg + 1] : 't检验与自由度';
 const TITLE = 't 检验与自由度';
 const outDir = path.join(root, artifact ? 'out/artifact' : 'out');
 const htmlFile = path.join(outDir, artifact ? 'index.html' : `${NAME}.html`);
