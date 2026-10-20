@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>t 检验与自由度 · 开发</title>
+<style>
+  @font-face { font-family: 'Noto Sans SC'; font-weight: 400; src: url('../node_modules/@expo-google-fonts/noto-sans-sc/400Regular/NotoSansSC_400Regular.ttf'); }
+  @font-face { font-family: 'Noto Sans SC'; font-weight: 500; src: url('../node_modules/@expo-google-fonts/noto-sans-sc/500Medium/NotoSansSC_500Medium.ttf'); }
+  @font-face { font-family: 'Noto Sans SC'; font-weight: 700; src: url('../node_modules/@expo-google-fonts/noto-sans-sc/700Bold/NotoSansSC_700Bold.ttf'); }
+  @font-face { font-family: 'Noto Serif SC'; font-weight: 400; src: url('../node_modules/@expo-google-fonts/noto-serif-sc/400Regular/NotoSerifSC_400Regular.ttf'); }
+  @font-face { font-family: 'Noto Serif SC'; font-weight: 600; src: url('../node_modules/@expo-google-fonts/noto-serif-sc/600SemiBold/NotoSerifSC_600SemiBold.ttf'); }
+  html, body { margin: 0; background: #000; color: #ccc; font: 14px sans-serif; }
+  canvas { display: block; width: 100vw; height: auto; max-height: calc(100vh - 40px); aspect-ratio: 16 / 9; margin: 0 auto; object-fit: contain; }
+  #bar { display: flex; gap: 8px; align-items: center; padding: 6px 10px; }
+  #seek { flex: 1; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="bar"><button id="play">播放</button><input id="seek" type="range" min="0" max="1340" step="0.01" value="0"><span id="time">0.00</span></div>
+<audio id="audio" preload="auto"></audio>
+<script type="module">
+  import { boot } from './main.js';
+  const q = new URLSearchParams(location.search);
+  const canvas = document.getElementById('c');
+  const app = await boot({ canvas, tex: '../build/tex.json', timeline: '../build/timeline.json', debug: q.has('debug') });
+  window.renderAt = (t) => app.render(t);
+  window.app = app;
+  const seek = document.getElementById('seek'), time = document.getElementById('time'), audio = document.getElementById('audio');
+  seek.max = app.tl.total;
+  if (q.get('audio')) audio.src = q.get('audio');
+  let playing = false, t0 = 0, wall = 0;
+  const now = () => (audio.src && !audio.paused ? audio.currentTime : playing ? t0 + (performance.now() - wall) / 1000 : +seek.value);
+  function loop() {
+    const t = now();
+    app.render(t);
+    if (playing) { seek.value = t; time.textContent = t.toFixed(2); requestAnimationFrame(loop); }
+  }
+  document.getElementById('play').onclick = () => {
+    playing = !playing;
+    t0 = +seek.value; wall = performance.now();
+    if (audio.src) { audio.currentTime = t0; playing ? audio.play() : audio.pause(); }
+    if (playing) requestAnimationFrame(loop);
+  };
+  seek.oninput = () => { time.textContent = (+seek.value).toFixed(2); app.render(+seek.value); if (audio.src) audio.currentTime = +seek.value; };
+  app.render(+(q.get('t') || 0));
+  window.ready = true;
+</script>
+</body>
+</html>
