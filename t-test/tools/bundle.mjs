@@ -1,7 +1,7 @@
 // Build the player as ONE self-contained HTML file that also works from file://.
 //
 //   node tools/bundle.mjs              out/t检验与自由度.html  + out/t检验与自由度.m4a (copy of the mix)
-//   node tools/bundle.mjs --artifact   out/artifact/index.html + out/artifact/audio.m4a (AAC 80 kbps)
+//   node tools/bundle.mjs --artifact   out/artifact/index.html + out/artifact/audio.mp4 (AAC 80 kbps; the host does not serve .m4a)
 //
 // Inlined: the player, engine and scenes (esbuild, IIFE), the stylesheet, build/tex.json
 // and build/timeline.json as objects, and the five font faces subset by tools/fonts.py
@@ -18,7 +18,7 @@ const NAME = 't检验与自由度';
 const TITLE = 't 检验与自由度';
 const outDir = path.join(root, artifact ? 'out/artifact' : 'out');
 const htmlFile = path.join(outDir, artifact ? 'index.html' : `${NAME}.html`);
-const audioName = artifact ? 'audio.m4a' : `${NAME}.m4a`;
+const audioName = artifact ? 'audio.mp4' : `${NAME}.m4a`;
 const audioSrc = path.join(root, 'build/audio/mix.m4a');
 const audioOut = path.join(outDir, audioName);
 const LIMIT_PAGE = 16 * 1024 * 1024;
@@ -91,13 +91,45 @@ function favicon() {
 // keep "</script" and "<!--" out of inline scripts
 const safe = (s) => s.replace(/<\/(script)/gi, '<\\/$1').replace(/<!--/g, '<\\!--');
 
-const html = `<!doctype html>
+const DESC = 't 检验与自由度：为什么除以 n − 1，t 分布从哪里来。九节动画讲解。';
+const body = `<noscript><p style="margin:40vh 0 0;text-align:center;color:#B9C0CE;font:16px sans-serif">这个页面需要启用 JavaScript 才能播放。</p></noscript>
+<script>${safe(code)}</script>
+<script>TPlayer.startPlayer({tex:${safe(texText.trim())},timeline:${safe(tlText.trim())},audio:${JSON.stringify(encodeURIComponent(audioName))}});</script>`;
+
+// The claude.ai artifact host wraps the page in its own document, so that version has no
+// <html>/<head>/<body> of its own. It also keeps the player clear of a phone's system bars
+// and leaves a 16px gutter at the sides.
+const ARTIFACT_CSS = `
+.tp {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.tp-stage {
+  --aw: calc(100vw - max(16px, env(safe-area-inset-left, 0px)) - max(16px, env(safe-area-inset-right, 0px)));
+  --ah: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  width: min(var(--aw), var(--ah) * 16 / 9);
+  height: min(var(--ah), var(--aw) * 9 / 16);
+}`;
+
+const html = artifact
+  ? `<title>${TITLE}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="${DESC}">
+<style>
+${fontCSS}
+</style>
+<style>${css}${ARTIFACT_CSS}</style>
+${body}
+`
+  : `<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<meta name="description" content="t 检验与自由度：为什么除以 n − 1，t 分布从哪里来。九节动画讲解。">
+<meta name="description" content="${DESC}">
 <title>${TITLE}</title>
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(favicon())}">
 <style>
@@ -106,9 +138,7 @@ ${fontCSS}
 <style>${css}</style>
 </head>
 <body>
-<noscript><p style="margin:40vh 0 0;text-align:center;color:#B9C0CE;font:16px sans-serif">这个页面需要启用 JavaScript 才能播放。</p></noscript>
-<script>${safe(code)}</script>
-<script>TPlayer.startPlayer({tex:${safe(texText.trim())},timeline:${safe(tlText.trim())},audio:${JSON.stringify(encodeURIComponent(audioName))}});</script>
+${body}
 </body>
 </html>
 `;
