@@ -29,7 +29,7 @@ const pad2 = (n) => String(n).padStart(2, '0');
 export function fmtTime(s) {
   s = Math.max(0, Math.floor(s + 1e-6));
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
-  return h ? `${h}:${pad2(m)}:${pad2(r)}` : `${pad2(m)}:${pad2(r)}`;
+  return h ? `${h}:${pad2(m)}:${pad2(r)}` : `${m}:${pad2(r)}`;
 }
 // spoken form for screen readers: 3 分 12 秒
 const fmtSpoken = (s) => {
@@ -73,27 +73,25 @@ function openStore(key) {
 }
 
 // ---------------------------------------------------------------- icons
-// 24 × 24 grid, 1.8 px strokes with round caps and joins (see player.css).
+// 24 × 24 grid, drawn in the spirit of SF Symbols: 1.7 px strokes, round caps (see player.css).
 const svg = (body, cls = '') => `<svg class="tp-i ${cls}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${body}</svg>`;
 const ICON = {
-  play: svg('<path class="tp-fill tp-fill--round" d="M8.7 6.4v11.2l9.1-5.6z"/>'),
-  pause: svg('<rect class="tp-solid" x="6.7" y="5.7" width="3.7" height="12.6" rx="1.15"/><rect class="tp-solid" x="13.6" y="5.7" width="3.7" height="12.6" rx="1.15"/>'),
+  play: svg('<path class="tp-solid" d="M7.6 5.3v13.4c0 .9 1 1.4 1.7.9l10.4-6.7c.7-.4.7-1.4 0-1.8L9.3 4.4c-.7-.5-1.7 0-1.7.9z"/>'),
+  pause: svg('<rect class="tp-solid" x="6.2" y="4.8" width="4" height="14.4" rx="1.3"/><rect class="tp-solid" x="13.8" y="4.8" width="4" height="14.4" rx="1.3"/>'),
   replay: svg('<path d="M5.3 14.6A7.2 7.2 0 1 0 7.2 7"/><path d="M6.6 3.6v3.9h3.9"/>'),
-  back: svg('<path d="M11.2 4.6h.8a8 8 0 1 1-8 8"/><path d="m13.7 2.1-2.5 2.5 2.5 2.5"/><text x="12" y="15.6">5</text>'),
-  fwd: svg('<path d="M12.8 4.6H12a8 8 0 1 0 8 8"/><path d="m10.3 2.1 2.5 2.5-2.5 2.5"/><text x="12" y="15.6">5</text>'),
-  prev: svg('<path d="M6.7 6.3v11.4"/><path class="tp-fill" d="M17.4 7.2v9.6L10 12z"/>'),
-  next: svg('<path d="M17.3 6.3v11.4"/><path class="tp-fill" d="M6.6 7.2v9.6L14 12z"/>'),
-  vol: svg('<path d="M4.3 9.7h2.9l4.3-3.6v11.8l-4.3-3.6H4.3z"/><path class="tp-w1" d="M14.9 9.4a3.8 3.8 0 0 1 0 5.2"/><path class="tp-w2" d="M17.5 6.8a7.5 7.5 0 0 1 0 10.4"/><path class="tp-x" d="m15.3 9.8 4.4 4.4m0-4.4-4.4 4.4"/>'),
-  subs: svg('<rect class="tp-cc" x="2.9" y="4.9" width="18.2" height="14.2" rx="3"/><text class="tp-zi" x="12" y="15.85">字</text>'),
-  list: svg('<path d="M9.6 7h9.6M9.6 12h9.6M9.6 17h9.6"/><circle class="tp-solid" cx="5.3" cy="7" r="1.25"/><circle class="tp-solid" cx="5.3" cy="12" r="1.25"/><circle class="tp-solid" cx="5.3" cy="17" r="1.25"/>'),
-  full: svg('<path d="M4.6 9V6.3c0-.9.8-1.7 1.7-1.7H9m6 0h2.7c.9 0 1.7.8 1.7 1.7V9m0 6v2.7c0 .9-.8 1.7-1.7 1.7H15m-6 0H6.3c-.9 0-1.7-.8-1.7-1.7V15"/>'),
-  unfull: svg('<path d="M9 4.6v2.7c0 .9-.8 1.7-1.7 1.7H4.6m10.4-4.4v2.7c0 .9.8 1.7 1.7 1.7h2.7m0 6h-2.7c-.9 0-1.7.8-1.7 1.7v2.7m-6 0v-2.7c0-.9-.8-1.7-1.7-1.7H4.6"/>'),
-  close: svg('<path d="m6.8 6.8 10.4 10.4m0-10.4L6.8 17.2"/>'),
+  back: svg('<path d="M11.2 4.6h.8a8 8 0 1 1-8 8"/><path d="m13.7 2.1-2.5 2.5 2.5 2.5"/><text x="12" y="15.4">5</text>'),
+  fwd: svg('<path d="M12.8 4.6H12a8 8 0 1 0 8 8"/><path d="m10.3 2.1 2.5 2.5-2.5 2.5"/><text x="12" y="15.4">5</text>'),
+  vol: svg('<path class="tp-solid" d="M3.4 9.4c0-.6.4-1 1-1h2.5l4-3.5c.6-.5 1.6-.1 1.6.8v12.6c0 .9-1 1.3-1.6.8l-4-3.5H4.4c-.6 0-1-.4-1-1z"/><path class="tp-w1" d="M15.4 9.3a3.9 3.9 0 0 1 0 5.4"/><path class="tp-w2" d="M18.1 6.6a7.6 7.6 0 0 1 0 10.8"/><path class="tp-x" d="m15.6 9.7 4.6 4.6m0-4.6-4.6 4.6"/>'),
+  subs: svg('<path class="tp-cc" d="M5.6 4.6h12.8a2.6 2.6 0 0 1 2.6 2.6v7.6a2.6 2.6 0 0 1-2.6 2.6h-7.3l-4 3c-.4.3-1 0-1-.5v-2.5h-.5A2.6 2.6 0 0 1 3 14.8V7.2a2.6 2.6 0 0 1 2.6-2.6z"/><path class="tp-cc-l" d="M7.4 9.4h9.2M7.4 12.8h5.6"/>'),
+  speed: svg('<path d="M4.3 17.2a8.6 8.6 0 1 1 15.4 0"/><path d="m12 13.6 3.7-4.4"/><circle class="tp-solid" cx="12" cy="13.6" r="1.7"/>'),
+  list: svg('<path d="M9.4 6.6h10M9.4 12h10M9.4 17.4h10"/><circle class="tp-solid" cx="5" cy="6.6" r="1.25"/><circle class="tp-solid" cx="5" cy="12" r="1.25"/><circle class="tp-solid" cx="5" cy="17.4" r="1.25"/>'),
+  full: svg('<path d="M14 4.4h5.6V10M19.6 4.4l-6 6M10 19.6H4.4V14M4.4 19.6l6-6"/>'),
+  unfull: svg('<path d="M19.6 10H14V4.4M14 10l6-6M4.4 14H10v5.6M10 14l-6 6"/>'),
+  close: svg('<path d="m7 7 10 10m0-10L7 17"/>'),
   check: svg('<path d="m5.8 12.4 4 4 8.4-8.6"/>'),
   chevron: svg('<path d="m10 7.4 4.6 4.6-4.6 4.6"/>'),
   left: svg('<path d="m14 7.4-4.6 4.6 4.6 4.6"/>'),
-  quiz: svg('<circle cx="12" cy="12" r="8.5"/><path d="M9.7 9.7a2.4 2.4 0 1 1 3.3 2.2c-.6.3-1 .8-1 1.5v.4"/><circle class="tp-solid" cx="12" cy="16.5" r="1.1"/>'),
-  keys: svg('<rect x="2.9" y="6.3" width="18.2" height="11.4" rx="2.4"/><path d="M6.6 9.9h.01M9.9 9.9h.01M13.2 9.9h.01M16.5 9.9h.01M8 14h8"/>'),
+  quiz: svg('<circle cx="12" cy="12" r="8.6"/><path d="M9.7 9.7a2.4 2.4 0 1 1 3.3 2.2c-.6.3-1 .8-1 1.5v.4"/><circle class="tp-solid" cx="12" cy="16.5" r="1.1"/>'),
 };
 
 // ---------------------------------------------------------------- markup
@@ -130,8 +128,9 @@ function stageHTML({ video, chapters, total, quizzes }) {
     })
     .join('');
   const kbd = (k) => `<kbd>${k}</kbd>`;
+  const meta = [chapters.length > 1 ? `${nCh}节` : '', fmtSpoken(total)].filter(Boolean).join(' · ');
   return `
-<div class="tp-pulse" data-r="pulse" aria-hidden="true"></div>
+<div class="tp-scrim" aria-hidden="true"></div>
 <div class="tp-osd" data-r="osd" role="status" aria-live="polite"></div>
 
 <div class="tp-card" data-r="card" role="status" aria-live="polite">
@@ -140,46 +139,47 @@ function stageHTML({ video, chapters, total, quizzes }) {
     <div class="tp-card-title" data-r="cardTitle"></div>
     <div class="tp-card-sub" data-r="cardSub"></div>
   </div>
-  <button class="tp-pill tp-pill--gold tp-card-go" data-r="cardGo" type="button">做题</button>
+  <button class="tp-pill tp-pill--tint tp-card-go" data-r="cardGo" type="button">做题</button>
   <button class="tp-x tp-card-x" data-r="cardX" type="button" aria-label="关闭">${ICON.close}</button>
   <i class="tp-card-life" data-r="cardLife"></i>
 </div>
 
 <div class="tp-controls" data-r="controls">
+  <div class="tp-row">
+    <button class="tp-meta" data-act="chapters" data-r="chLabel" type="button" aria-label="章节列表">
+      ${video.title ? `<span class="tp-meta-title">${esc(video.title)}</span>` : ''}
+      <span class="tp-meta-ch"><span class="tp-meta-ch-text" data-r="chLabelText"></span>${ICON.chevron}</span>
+    </button>
+    <div class="tp-transport">
+      <button class="tp-btn" data-act="back" type="button" aria-label="后退 5 秒" data-tip="后退 5 秒" data-keys="←">${ICON.back}</button>
+      <button class="tp-btn tp-btn--play" data-act="play" data-r="playBtn" type="button" aria-label="播放">${ICON.play}${ICON.pause}${ICON.replay}</button>
+      <button class="tp-btn" data-act="fwd" type="button" aria-label="前进 5 秒" data-tip="前进 5 秒" data-keys="→">${ICON.fwd}</button>
+    </div>
+    <div class="tp-group">
+      <div class="tp-volume" data-r="volume">
+        <div class="tp-vol" data-r="vol" role="slider" tabindex="0" aria-label="音量" aria-valuemin="0" aria-valuemax="100">
+          <div class="tp-vol-track"><i class="tp-vol-fill" data-r="volFill"></i></div>
+        </div>
+        <button class="tp-btn" data-act="mute" data-r="muteBtn" type="button" aria-label="静音">${ICON.vol}</button>
+      </div>
+      <button class="tp-btn tp-btn--subs" data-act="subs" data-r="subsBtn" type="button" aria-label="字幕" aria-pressed="true">${ICON.subs}</button>
+      <button class="tp-btn tp-btn--speed" data-act="speed" data-r="speedBtn" type="button" aria-label="播放速度" aria-haspopup="menu" aria-expanded="false" data-tip="播放速度" data-keys="[ ]">${ICON.speed}<span data-r="speedText">1×</span></button>
+      <button class="tp-btn" data-act="chapters" data-r="chBtn" type="button" aria-label="章节" aria-expanded="false" data-tip="章节" data-keys="1–9">${ICON.list}</button>
+      <button class="tp-btn tp-btn--swap" data-act="fullscreen" data-r="fsBtn" type="button" aria-label="全屏">${ICON.full}${ICON.unfull}</button>
+    </div>
+  </div>
   <div class="tp-progress" data-r="progress" role="slider" tabindex="0" aria-label="播放进度"
        aria-valuemin="0" aria-valuemax="${Math.floor(total)}" aria-valuenow="0">
     <div class="tp-track" data-r="track">${segs}${marks}</div>
     <i class="tp-handle" data-r="handle"></i>
   </div>
-  <div class="tp-row">
-    <div class="tp-group tp-group--left">
-      <button class="tp-btn tp-btn--play" data-act="play" data-r="playBtn" type="button" aria-label="播放">${ICON.play}${ICON.pause}${ICON.replay}</button>
-      <button class="tp-btn" data-act="back" type="button" aria-label="后退 5 秒" data-tip="后退 5 秒" data-keys="←">${ICON.back}</button>
-      <button class="tp-btn" data-act="fwd" type="button" aria-label="前进 5 秒" data-tip="前进 5 秒" data-keys="→">${ICON.fwd}</button>
-      <button class="tp-btn" data-act="prev" type="button" aria-label="上一节" data-tip="上一节" data-keys="Shift ←">${ICON.prev}</button>
-      <button class="tp-btn" data-act="next" type="button" aria-label="下一节" data-tip="下一节" data-keys="Shift →">${ICON.next}</button>
-      <div class="tp-volume" data-r="volume">
-        <button class="tp-btn" data-act="mute" data-r="muteBtn" type="button" aria-label="静音">${ICON.vol}</button>
-        <div class="tp-vol" data-r="vol" role="slider" tabindex="0" aria-label="音量" aria-valuemin="0" aria-valuemax="100">
-          <div class="tp-vol-track"><i class="tp-vol-fill" data-r="volFill"></i><i class="tp-vol-knob" data-r="volKnob"></i></div>
-        </div>
-      </div>
-      <div class="tp-time" aria-hidden="true"><span class="tp-time-cur" data-r="cur">00:00</span><span class="tp-time-sep">/</span><span class="tp-time-dur">${fmtTime(total)}</span></div>
-      <button class="tp-chlabel" data-act="chapters" data-r="chLabel" type="button" aria-label="章节列表"><span class="tp-chlabel-text" data-r="chLabelText"></span>${ICON.chevron}</button>
-    </div>
-    <div class="tp-group tp-group--right">
-      <button class="tp-btn tp-btn--speed" data-act="speed" data-r="speedBtn" type="button" aria-label="播放速度" aria-haspopup="menu" aria-expanded="false" data-tip="播放速度" data-keys="[ ]"><span data-r="speedText">1×</span></button>
-      <button class="tp-btn tp-btn--subs" data-act="subs" data-r="subsBtn" type="button" aria-label="字幕" aria-pressed="true">${ICON.subs}</button>
-      <button class="tp-btn" data-act="chapters" data-r="chBtn" type="button" aria-label="章节" aria-expanded="false" data-tip="章节" data-keys="1–9">${ICON.list}</button>
-      <button class="tp-btn tp-btn--swap" data-act="fullscreen" data-r="fsBtn" type="button" aria-label="全屏">${ICON.full}${ICON.unfull}</button>
-    </div>
-  </div>
+  <div class="tp-times" aria-hidden="true"><span data-r="cur">0:00</span><span data-r="rem">−${fmtTime(total)}</span></div>
 </div>
 
 <div class="tp-preview" data-r="preview" aria-hidden="true">
   <div class="tp-preview-frame" data-r="pframe"><canvas data-r="pcanvas"></canvas></div>
-  <div class="tp-preview-ch" data-r="pch"></div>
   <div class="tp-preview-time" data-r="ptime"></div>
+  <div class="tp-preview-ch" data-r="pch"></div>
 </div>
 
 <div class="tp-tip" data-r="tip" role="tooltip"></div>
@@ -192,13 +192,13 @@ function stageHTML({ video, chapters, total, quizzes }) {
 <section class="tp-panel" data-r="panel" aria-label="章节">
   <header class="tp-panel-head">
     <h2>章节</h2>
-    <span class="tp-panel-meta">共${nCh}节 · ${fmtTime(total)}</span>
+    <span class="tp-panel-meta">${meta}</span>
     <button class="tp-x" data-act="closePanel" type="button" aria-label="关闭">${ICON.close}</button>
   </header>
   <ol class="tp-chlist" data-r="chList">${rows}</ol>
   <footer class="tp-panel-foot">
     <label class="tp-setting" for="tp-autoquiz">
-      <span class="tp-setting-text">每节结束自动暂停做题<small>到有题的一节末尾时暂停，并打开题目</small></span>
+      <span class="tp-setting-text">每节结束时暂停做题<small>到有题的一节末尾时暂停，并打开题目</small></span>
       <button class="tp-switch" id="tp-autoquiz" data-r="autoQuiz" role="switch" aria-checked="false" type="button"><i></i></button>
     </label>
   </footer>
@@ -212,7 +212,7 @@ function stageHTML({ video, chapters, total, quizzes }) {
     <div class="tp-q-body" data-r="qBody"></div>
     <div class="tp-q-actions">
       <div class="tp-q-pager" data-r="qPager"></div>
-      <button class="tp-pill tp-pill--ghost" data-act="reveal" data-r="qReveal" type="button">看答案</button>
+      <button class="tp-pill tp-pill--gray" data-act="reveal" data-r="qReveal" type="button">显示答案</button>
       <button class="tp-pill tp-pill--primary" data-act="resume" type="button">${ICON.play}<span>继续播放</span></button>
     </div>
   </div>
@@ -242,18 +242,13 @@ function stageHTML({ video, chapters, total, quizzes }) {
 <div class="tp-start" data-r="start">
   <div class="tp-start-inner">
     <h1 class="tp-title">${video.titleHTML || esc(video.title || '')}</h1>
-    <i class="tp-start-rule" aria-hidden="true"></i>
     ${video.subtitleHTML ? `<p class="tp-subtitle">${video.subtitleHTML}</p>` : ''}
-    <button class="tp-start-play" data-act="startMain" data-r="startPlay" type="button">
-      <span class="tp-start-circle">${ICON.play}</span>
-      <span class="tp-start-label" data-r="startLabel">开始播放</span>
-    </button>
-    <button class="tp-start-alt" data-act="startOver" data-r="startOver" type="button" hidden>从头开始</button>
+    <p class="tp-start-meta">${meta}</p>
+    <div class="tp-start-actions">
+      <button class="tp-start-play" data-act="startMain" data-r="startPlay" type="button">${ICON.play}<span data-r="startLabel">播放</span></button>
+      <button class="tp-start-alt" data-act="startOver" data-r="startOver" type="button" hidden>从头播放</button>
+    </div>
     <p class="tp-start-note" data-r="startNote" hidden></p>
-  </div>
-  <div class="tp-start-foot">
-    <span>${chapters.length > 1 ? `共${nCh}节 · ` : ''}${fmtSpoken(total)}</span>
-    <span class="tp-start-keys">${kbd('空格')} 播放　${kbd('←')}${kbd('→')} 快退快进　${kbd('C')} 字幕　${kbd('F')} 全屏　${kbd('?')} 全部快捷键</span>
   </div>
 </div>`;
 }
@@ -543,12 +538,10 @@ export async function startPlayer(cfg = {}) {
     updatePlayState();
     savePos();
   }
-  function togglePlay(pulse = false) {
+  function togglePlay() {
     if (phase !== 'main') return;
-    const willPlay = !playing;
-    if (willPlay) play();
-    else pause();
-    if (pulse) showPulse(willPlay ? ICON.play : ICON.pause);
+    if (playing) pause();
+    else play();
   }
   function finish() {
     if (ended) return;
@@ -599,6 +592,7 @@ export async function startPlayer(cfg = {}) {
     audio.playbackRate = r;
     audio.defaultPlaybackRate = r;
     R.speedText.textContent = fmtRate(r);
+    R.speedBtn.classList.toggle('is-custom', r !== 1);
     for (const b of R.speedMenu.querySelectorAll('[data-rate]')) b.setAttribute('aria-checked', String(+b.dataset.rate === r));
     S.rate = r;
     store.save();
@@ -640,7 +634,6 @@ export async function startPlayer(cfg = {}) {
     audio.muted = muted;
     const v = muted ? 0 : volume;
     R.volFill.style.transform = `scaleX(${v})`;
-    R.volKnob.style.left = `${v * 100}%`;
     R.vol.setAttribute('aria-valuenow', String(Math.round(v * 100)));
     R.vol.setAttribute('aria-valuetext', muted ? '静音' : `${Math.round(volume * 100)}%`);
     R.muteBtn.dataset.level = v === 0 ? '0' : v < 0.5 ? '1' : '2';
@@ -712,6 +705,7 @@ export async function startPlayer(cfg = {}) {
     if (sec !== uiSec) {
       uiSec = sec;
       R.cur.textContent = fmtTime(t);
+      R.rem.textContent = `−${fmtTime(total - sec)}`;
       R.progress.setAttribute('aria-valuenow', String(sec));
       R.progress.setAttribute('aria-valuetext', `${fmtSpoken(t)}，共 ${fmtSpoken(total)}`);
     }
@@ -777,12 +771,6 @@ export async function startPlayer(cfg = {}) {
     clearTimeout(osdTimer);
     osdTimer = setTimeout(() => R.osd.classList.remove('is-on'), 1100);
   }
-  function showPulse(icon) {
-    R.pulse.innerHTML = icon;
-    R.pulse.classList.remove('is-on');
-    void R.pulse.offsetWidth; // restart the animation
-    R.pulse.classList.add('is-on');
-  }
 
   // tooltips for buttons
   let tipEl = null, tipTimer = 0;
@@ -790,7 +778,7 @@ export async function startPlayer(cfg = {}) {
     if (!el || !el.dataset.tip || menuOpen || scrub.active) return;
     tipEl = el;
     const keys = (el.dataset.keys || '').split(' ').filter(Boolean);
-    R.tip.innerHTML = `<span>${esc(el.dataset.tip)}</span>${keys.map((k) => `<kbd>${esc(k)}</kbd>`).join('')}`;
+    R.tip.innerHTML = `<span>${esc(el.dataset.tip)}</span>${keys.length ? `<span class="tp-tip-k">${keys.map(esc).join(' ')}</span>` : ''}`;
     const sr = stage.getBoundingClientRect(), er = el.getBoundingClientRect();
     const tw = R.tip.offsetWidth, th = R.tip.offsetHeight;
     const x = clamp(er.left + er.width / 2 - sr.left - tw / 2, 8, sr.width - tw - 8);
@@ -1101,7 +1089,7 @@ export async function startPlayer(cfg = {}) {
       }, 300);
     });
     requestAnimationFrame(grow);
-    R.qReveal.textContent = revealed ? '收起答案' : '看答案';
+    R.qReveal.textContent = revealed ? '隐藏答案' : '显示答案';
     R.qReveal.setAttribute('aria-expanded', String(revealed));
     R.qPager.innerHTML =
       list.length > 1
@@ -1112,7 +1100,7 @@ export async function startPlayer(cfg = {}) {
     const box = R.qBody.querySelector('.tp-q-reveal');
     const show = box.hidden;
     box.hidden = !show;
-    R.qReveal.textContent = show ? '收起答案' : '看答案';
+    R.qReveal.textContent = show ? '隐藏答案' : '显示答案';
     R.qReveal.setAttribute('aria-expanded', String(show));
     if (show) {
       done[qKey(quizN, quizIdx)] = true;
@@ -1173,7 +1161,7 @@ export async function startPlayer(cfg = {}) {
   // ---------------------------------------------------------------- start screen
   const resumeAt = typeof S.pos === 'number' && S.pos > RESUME_MIN && S.pos < total - RESUME_MIN ? S.pos : 0;
   if (resumeAt) {
-    R.startLabel.textContent = `从上次的位置继续（${fmtTime(resumeAt)}）`;
+    R.startLabel.textContent = `继续播放 ${fmtTime(resumeAt)}`;
     R.startOver.hidden = false;
   }
   function noteAudio() {
@@ -1266,7 +1254,7 @@ export async function startPlayer(cfg = {}) {
       closeMenus();
       return;
     }
-    togglePlay(true);
+    togglePlay();
   });
   canvas.addEventListener('dblclick', (e) => {
     if (phase === 'main') {
@@ -1346,7 +1334,7 @@ export async function startPlayer(cfg = {}) {
       case 'k':
       case 'K':
         if (k === ' ') spaceHandled = true;
-        togglePlay(true);
+        togglePlay();
         break;
       case 'ArrowLeft':
         e.shiftKey ? prevChapter() : skip(-SEEK_SMALL);
