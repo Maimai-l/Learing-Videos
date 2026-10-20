@@ -137,3 +137,82 @@ export function bez(p0, p1, p2, p3, t) {
 }
 
 export { clamp, lerp, ease };
+
+// Histogram bars on a horizontal axis. counts[i] is the number of values in bin i,
+// whose left edge is v0 + i*bw. maxCount fixes the scale (so bars only grow).
+export function histBars(ctx, ax, counts, v0, bw, maxCount, hMax, color, alpha = 1, o = {}) {
+  if (alpha <= 0.002) return;
+  const gap = o.gap === undefined ? 2 : o.gap;
+  ctx.save();
+  for (let i = 0; i < counts.length; i++) {
+    const c = counts[i];
+    if (!c) continue;
+    const xa = ax.X(v0 + i * bw) + gap / 2, xb = ax.X(v0 + (i + 1) * bw) - gap / 2;
+    const h = (c / maxCount) * hMax;
+    const hiA = o.hiBin === i ? 1 : 0;
+    ctx.beginPath();
+    ctx.roundRect(xa, ax.y - h - 1, xb - xa, h, [Math.min(3, (xb - xa) / 2), Math.min(3, (xb - xa) / 2), 0, 0]);
+    ctx.fillStyle = rgba(color, alpha * ((o.fillAlpha || 0.55) + 0.4 * hiA));
+    ctx.fill();
+  }
+  ctx.restore();
+}
+export function binCounts(values, k, v0, bw, nb) {
+  const c = new Array(nb).fill(0);
+  for (let j = 0; j < Math.min(k, values.length); j++) {
+    const i = Math.floor((values[j] - v0) / bw);
+    if (i >= 0 && i < nb) c[i]++;
+  }
+  return c;
+}
+
+// ---------- expansion grid: the terms of a squared (or multiplied) sum ----------
+// g: {x, y, n, m, cell} top-left corner, n rows, m columns, cell size in px.
+// o.rows / o.cols: TexRef labels; o.fill(i, j) -> [colour, alpha] or null;
+// o.term(i, j) -> TexRef or null; o.termAlpha(i, j); o.termColor(i, j); o.lines (0..1)
+export function drawGrid(ctx, g, o = {}) {
+  const a = o.alpha === undefined ? 1 : o.alpha;
+  if (a <= 0.002) return;
+  const { x, y, n, cell } = g;
+  const m = g.m || n;
+  const lp = o.lines === undefined ? 1 : o.lines;
+  // cell fills
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < m; j++) {
+      const f = o.fill ? o.fill(i, j) : null;
+      if (f && f[1] > 0.002) {
+        ctx.fillStyle = rgba(f[0], f[1] * a);
+        ctx.fillRect(x + j * cell + 1.5, y + i * cell + 1.5, cell - 3, cell - 3);
+      }
+    }
+  // grid lines (drawn from the top-left corner outward)
+  ctx.save();
+  ctx.strokeStyle = rgba('#5A6478', a * 0.9);
+  ctx.lineWidth = 1.6;
+  for (let i = 0; i <= n; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + i * cell);
+    ctx.lineTo(x + m * cell * lp, y + i * cell);
+    ctx.stroke();
+  }
+  for (let j = 0; j <= m; j++) {
+    ctx.beginPath();
+    ctx.moveTo(x + j * cell, y);
+    ctx.lineTo(x + j * cell, y + n * cell * lp);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return g;
+}
+export const cellCenter = (g, i, j) => [g.x + (j + 0.5) * g.cell, g.y + (i + 0.5) * g.cell];
+
+// Pick the seed (from a fixed range) whose simulated sample looks most typical by a
+// score (smaller is better). Every frame and every run still uses the same draws.
+export function bestSeed(score, from = 1, to = 400) {
+  let best = from, bs = Infinity;
+  for (let s = from; s <= to; s++) {
+    const v = score(s);
+    if (v < bs) { bs = v; best = s; }
+  }
+  return best;
+}

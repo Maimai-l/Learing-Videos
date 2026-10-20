@@ -25,5 +25,6 @@ export async function boot({ canvas, tex, timeline, debug = false }) {
   if (N.missing.length) console.warn('phrases not found:', N.missing);
   const render = createRenderer({ tl, layers, debug });
   const ctx = canvas.getContext('2d');
-  return { tl, N, render: (t) => render(ctx, t) };
+  // renderTo draws the same frame into another context (the player's scrub preview)
+  return { tl, N, render: (t, o) => render(ctx, t, o), renderTo: (c, t, o) => render(c, t, o) };
 }

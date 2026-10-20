@@ -7,7 +7,7 @@ export const CONFIG = {
   chapterPause: 1.8, // silence added before every chapter except the first
   // extra silence after a paragraph (1-based paragraph number -> seconds),
   // for places where the picture needs time to finish before the next sentence
-  pauses: {},
+  pauses: { 11: 1.4 },
   chapters: [
     { n: 1, cn: '一', title: '五批数据', start: '一家工厂试用了一种新工艺' },
     { n: 2, cn: '二', title: '平均值会偏离多远', start: '每个数据与真实均值之差' },

@@ -16,6 +16,7 @@ export function setTexStore(json) {
   STORE = json;
   PATHS = typeof Path2D !== 'undefined' ? json.paths.map((d) => new Path2D(d)) : [];
   layoutCache.clear();
+  rankCache.clear();
 }
 export const texRequests = () => requested;
 
@@ -99,6 +100,21 @@ export class TexRef {
   }
 }
 
+// rank of every glyph among the glyphs sharing each tag (left to right)
+const rankCache = new Map();
+function tagRanks(ref, L) {
+  let r = rankCache.get(ref.key);
+  if (r) return r;
+  r = {};
+  for (const it of L.items) for (const tg of it.tags) (r[tg] = r[tg] || []).push(it);
+  for (const tg of Object.keys(r)) {
+    const arr = r[tg].sort((a, b) => a.order - b.order);
+    r[tg] = { n: arr.length, rank: new Map(arr.map((it, i) => [it, i])) };
+  }
+  rankCache.set(ref.key, r);
+  return r;
+}
+
 // Progress of glyph k (0..n-1) within an overall write progress p.
 function stagger(p, k, n, win = 0.42) {
   if (p >= 1) return 1;
@@ -176,10 +192,15 @@ export function drawTex(ctx, ref, x, y, size, o = {}) {
   ctx.translate(ox, oy);
   ctx.scale(s, s);
   const defA = o.alphas && o.alphas['*'] !== undefined ? o.alphas['*'] : 1;
+  // o.writes {tag: progress} writes tagged parts independently (each part staggers on its own)
+  const wr = o.writes ? tagRanks(ref, L) : null;
   for (const it of L.items) {
     const a = alpha * tagValue(o.alphas, it.tags, defA);
     if (a <= 0.002) continue;
-    const q = stagger(write, it.order, L.n, o.win);
+    let q;
+    const wt = o.writes ? it.tags.slice().reverse().find((tg) => o.writes[tg] !== undefined) : undefined;
+    if (wt !== undefined) q = stagger(o.writes[wt], wr[wt].rank.get(it), wr[wt].n, o.win);
+    else q = stagger(write, it.order, L.n, o.win);
     const col = tagValue(o.colors, it.tags, color);
     const sh = tagValue(o.shift, it.tags, null);
     const sk = tagValue(o.scale, it.tags, null);

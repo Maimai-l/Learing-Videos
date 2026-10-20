@@ -48,7 +48,7 @@ function splitLines(ctx, s) {
   if (best < 0) best = Math.floor(mid);
   return [s.slice(0, best + 1), s.slice(best + 1)];
 }
-function drawSubtitles(ctx, t, cues) {
+function drawSubtitles(ctx, t, cues, lift = 0) {
   // binary search for the cue at time t
   let lo = 0, hi = cues.length - 1, found = -1;
   while (lo <= hi) {
@@ -62,7 +62,7 @@ function drawSubtitles(ctx, t, cues) {
   if (a <= 0) return;
   const lines = splitLines(ctx, c.text);
   lines.forEach((ln, i) => {
-    const y = SUB.y - (lines.length - 1 - i) * (SUB.size * 1.32);
+    const y = SUB.y - lift - (lines.length - 1 - i) * (SUB.size * 1.32);
     text(ctx, ln, W / 2, y, { size: SUB.size, weight: 500, color: '#F3F5F9', alpha: a, stroke: 5, strokeColor: 'rgba(5,7,10,0.85)', shadow: 10, letter: 0.5 });
   });
 }
@@ -94,9 +94,13 @@ function drawChapters(ctx, t, chapters) {
 
 export function createRenderer({ tl, layers, debug = false }) {
   const sorted = [...layers].sort((a, b) => (a.z || 0) - (b.z || 0));
-  return function render(ctx, t) {
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.drawImage(background(), 0, 0);
+  // o.scale: device pixels per frame pixel (the player draws at screen resolution);
+  // o.subtitles: false hides the burned-in subtitles (the player can toggle them);
+  // o.subtitleLift: move the subtitles up by this many frame pixels (above the player's controls).
+  return function render(ctx, t, o = {}) {
+    const k = o.scale || 1;
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    ctx.drawImage(background(), 0, 0, W, H);
     for (const L of sorted) {
       if (t < L.t0 || t > L.t1) continue;
       ctx.save();
@@ -104,7 +108,7 @@ export function createRenderer({ tl, layers, debug = false }) {
       ctx.restore();
     }
     drawChapters(ctx, t, tl.chapters);
-    drawSubtitles(ctx, t, tl.cues);
+    if (o.subtitles !== false) drawSubtitles(ctx, t, tl.cues, o.subtitleLift || 0);
     if (debug) {
       text(ctx, t.toFixed(2) + ' s', W - 40, 40, { size: 20, color: '#666', align: 'right' });
     }

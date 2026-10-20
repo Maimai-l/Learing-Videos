@@ -1,7 +1,9 @@
 // All scene layers of the video, in chapter order.
 import { buildTitle } from './s0_title.js';
 import { build1 } from './s1.js';
+import { build2 } from './s2.js';
+import { build3 } from './s3.js';
 
 export function buildLayers(N) {
-  return [...buildTitle(N), ...build1(N)];
+  return [...buildTitle(N), ...build1(N), ...build2(N).layers, ...build3(N).layers];
 }
