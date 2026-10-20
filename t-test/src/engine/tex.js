@@ -137,12 +137,13 @@ function drawItem(ctx, it, color, alpha, q, strokeWrite = true) {
   ctx.transform(it.m[0], it.m[1], it.m[2], it.m[3], it.m[4], it.m[5]);
   if (it.kind === 't') {
     ctx.scale(1, -1); // undo the formula's y flip for text
-    ctx.font = `${it.size * 0.96}px ${FONT.sans}`;
+    // MathJax reserves 1em per CJK character; set them solid at that size
+    ctx.font = `${(it.size / 884) * 1000}px ${FONT.sans}`;
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = rgba(color, alpha * ease.out(q));
     let x = 0;
     for (const ch of it.s) {
-      ctx.fillText(ch, x + 20, 0);
+      ctx.fillText(ch, x, 0);
       x += 1000;
     }
   } else {
@@ -192,6 +193,21 @@ export function drawTex(ctx, ref, x, y, size, o = {}) {
   ctx.translate(ox, oy);
   ctx.scale(s, s);
   const defA = o.alphas && o.alphas['*'] !== undefined ? o.alphas['*'] : 1;
+  // o.halo {width, color}: a dark outline behind the glyphs (used for subtitles)
+  if (o.halo) {
+    for (const it of L.items) {
+      if (it.kind === 't') continue;
+      const a = alpha * tagValue(o.alphas, it.tags, defA);
+      if (a <= 0.002) continue;
+      ctx.save();
+      ctx.transform(it.m[0], it.m[1], it.m[2], it.m[3], it.m[4], it.m[5]);
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = o.halo.width / (s * Math.max(0.05, it.sc));
+      ctx.strokeStyle = rgba(o.halo.color || '#05070A', a);
+      ctx.stroke(PATHS[it.p]);
+      ctx.restore();
+    }
+  }
   // o.writes {tag: progress} writes tagged parts independently (each part staggers on its own)
   const wr = o.writes ? tagRanks(ref, L) : null;
   for (const it of L.items) {
@@ -214,6 +230,16 @@ export function drawTex(ctx, ref, x, y, size, o = {}) {
       drawItem(ctx, it, col, a, q, o.stroke !== false);
       ctx.restore();
     } else drawItem(ctx, it, col, a, q, o.stroke !== false);
+    // o.bold (px): thicken thin math strokes next to heavier text
+    if (o.bold && it.kind !== 't' && q >= 1) {
+      ctx.save();
+      ctx.transform(it.m[0], it.m[1], it.m[2], it.m[3], it.m[4], it.m[5]);
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = o.bold / (s * Math.max(0.05, it.sc));
+      ctx.strokeStyle = rgba(col, a);
+      ctx.stroke(PATHS[it.p]);
+      ctx.restore();
+    }
   }
   ctx.restore();
 }

@@ -1,7 +1,7 @@
 // 五、这个“1”是什么：自由度的含义
 import { C, W, H } from '../engine/theme.js';
 import { tex, drawTex, drawTexMorph } from '../engine/tex.js';
-import { text, num, labelNum, line, arrow, dot, Axis, Plot, span, brace, braceTip, roundRect, rich, poly, fillPoly, panel, measure } from '../engine/draw.js';
+import { text, num, labelNum, line, arrow, dot, Axis, Plot, span, brace, braceTip, roundRect, rich, poly, fillPoly, panel, measure, mixed } from '../engine/draw.js';
 import { prog, win, ease, clamp, lerp, rgba, normalSampler, fmt, keys, mixColor } from '../engine/util.js';
 import { DATA, MEAN, drawGrid, cellCenter } from './common.js';
 
@@ -26,6 +26,16 @@ export function build5(N) {
   const S = N.chapter(5);
   const { A } = S;
   const layers = [];
+  const LB = {
+    used: mixed('已用来估计 $\\mu$'),
+    gone: mixed('$\\mu$ 消掉了'),
+    firstk: mixed('：前 $k$ 个数的平均'),
+    why: mixed('（新数据的误差 $\\sigma^2$，加上前 $k$ 个平均值的误差 $\\sigma^2/k$）'),
+    ndata: mixed('$n$ 个数据：一共 '),
+    ndata2: mixed('$n$ 个数据'),
+    n1: mixed('$n-1$ 条：离散程度'),
+    np: mixed('一般地：要定 $p$ 个数，自由度'),
+  };
 
   // =====================================================================
   // 5A  two data: average position and gap
@@ -105,7 +115,7 @@ export function build5(N) {
         const y = 210;
         panel(ctx, 470, y - 70, 460, 150, { alpha: A1 * pq });
         labelNum(ctx, '平均位置', cen.toFixed(1), 700, y - 18, { size: 34, color: C.xbar, alpha: A1 * pq });
-        text(ctx, '已用来估计 μ', 700, y + 36, { size: 24, color: C.xbar, alpha: A1 * used });
+        rich(ctx, LB.used, 700, y + 36, { size: 24, color: C.xbar, alpha: A1 * used });
         const pw = prog(t, a.gapW, 0.6);
         panel(ctx, 990, y - 70, 460, 150, { alpha: A1 * pw, stroke: left > 0 ? C.hi : '#2A3343' });
         labelNum(ctx, '间距', gap.toFixed(1), 1220, y - 18, { size: 34, color: C.text, alpha: A1 * pw });
@@ -156,7 +166,7 @@ export function build5(N) {
           const y0 = o.oy + it.box[3] * o.s + 2, y1 = o.oy + it.box[1] * o.s - 2;
           line(ctx, x0, y0, lerp(x0, x1, strike), lerp(y0, y1, strike), { color: C.neg, width: 3, alpha: A2 });
         }
-        text(ctx, 'μ 消掉了', 960, 268, { size: 26, color: C.neg, alpha: A2 * strike });
+        rich(ctx, LB.gone, 960, 268, { size: 26, color: C.neg, alpha: A2 * strike });
       }
       // grid for (ε1 − ε2)²
       const pg = prog(t, b.grid, 0.8);
@@ -333,17 +343,17 @@ export function build5(N) {
       const pk = prog(t, d.coef, 1.2, ease.linear);
       if (pk > 0) drawTex(ctx, fK, 520, 190, 54, { alpha: A4 * clamp(pk * 3), write: pk });
       const pn = prog(t, d.far, 0.6);
-      rich(ctx, [fKnote, '：前 k 个数的平均'], 520, 290, { size: 26, color: C.xbar, alpha: A4 * pn });
+      rich(ctx, [fKnote, ...LB.firstk], 520, 290, { size: 26, color: C.xbar, alpha: A4 * pn });
       // why it averages one σ²
       const pa = prog(t, d.avg - 0.2, 1.4, ease.linear);
       if (pa > 0) {
         drawTex(ctx, fWhyK, 1340, 170, 38, { alpha: A4 * clamp(pa * 3), write: pa, colors: { s: C.sigma } });
-        text(ctx, '（新数据的误差 σ²，加上前 k 个平均值的误差 σ²/k）', 1340, 232, { size: 22, color: C.dim, alpha: A4 * prog(t, d.avg + 1.0, 0.5) });
+        rich(ctx, LB.why, 1340, 232, { size: 22, color: C.dim, alpha: A4 * prog(t, d.avg + 1.0, 0.5) });
         const pa2 = prog(t, d.avg + 1.2, 1.0, ease.linear);
         if (pa2 > 0) drawTex(ctx, fWhyK2, 1340, 300, 38, { alpha: A4 * clamp(pa2 * 3), write: pa2, colors: { s: C.sigma } });
       }
       const pn1 = prog(t, d.n1, 0.6);
-      if (pn1 > 0) rich(ctx, ['n 个数据：一共 ', fN1, ' 项'], 520, 360, { size: 30, color: C.hi, alpha: A4 * pn1 });
+      if (pn1 > 0) rich(ctx, [...LB.ndata, fN1, ' 项'], 520, 360, { size: 30, color: C.hi, alpha: A4 * pn1 });
       // the data, added one at a time
       const pc = prog(t, d.calc - 0.3, 0.7); // the worked table
       const pAx = prog(t, d.start - 0.1, 0.7);
@@ -437,7 +447,7 @@ export function build5(N) {
         const y = 620;
         // five data dots
         for (let i = 0; i < 5; i++) dot(ctx, 560 + i * 50, y, 11, { color: C.data, alpha: A5 * ps, glow: 0.4 });
-        text(ctx, 'n 个数据', 660, y + 60, { size: 26, color: C.data, alpha: A5 * ps });
+        rich(ctx, LB.ndata2, 660, y + 60, { size: 26, color: C.data, alpha: A5 * ps });
         text(ctx, '=', 880, y, { size: 44, alpha: A5 * ps });
         roundRect(ctx, 940, y - 34, 170, 68, 12, { fill: C.xbar, fillAlpha: 0.18, stroke: C.xbar, width: 2, alpha: A5 * ps });
         text(ctx, '平均位置', 1025, y, { size: 26, color: C.xbar, alpha: A5 * ps });
@@ -445,7 +455,7 @@ export function build5(N) {
         const pr = prog(t, e.rest, 0.7) * (1 - up);
         text(ctx, '+', 1150, y, { size: 44, alpha: A5 * pr });
         for (let i = 0; i < 4; i++) roundRect(ctx, 1190 + i * 92, y - 34, 80, 68, 12, { fill: C.hi, fillAlpha: 0.16, stroke: C.hi, width: 2, alpha: A5 * clamp(pr * 4 - i) });
-        text(ctx, 'n − 1 条：离散程度', 1365, y + 60, { size: 24, color: C.hi, alpha: A5 * pr });
+        rich(ctx, LB.n1, 1365, y + 60, { size: 24, color: C.hi, alpha: A5 * pr });
       }
       // "knowing the mean, the last value is not free"
       if (up > 0) {
@@ -546,7 +556,7 @@ export function build5(N) {
       // general rule
       const pp = prog(t, f.np, 0.6);
       if (pp > 0) {
-        text(ctx, '一般地：要定 p 个数，自由度', 900, 900, { size: 32, color: C.hi, alpha: A6 * pp });
+        rich(ctx, LB.np, 1136, 900, { size: 32, color: C.hi, alpha: A6 * pp, align: 'right' });
         drawTex(ctx, fNmp, 1150, 902, 44, { color: C.hi, alpha: A6 * pp, align: 'l' });
       }
     },

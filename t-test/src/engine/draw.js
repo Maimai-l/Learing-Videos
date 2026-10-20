@@ -55,7 +55,7 @@ export function rich(ctx, parts, x, y, o = {}) {
   const base = y + size * 0.36;
   parts.forEach((p, i) => {
     if (p instanceof TexRef) {
-      drawTex(ctx, p, cx, base, ts, { align: 'l', valign: 'b', color: o.texColor || o.color || C.text, alpha: a, colors: o.colors, write: o.write });
+      drawTex(ctx, p, cx, base, ts, { align: 'l', valign: 'b', color: o.texColor || o.color || C.text, alpha: a, colors: o.colors, write: o.write, halo: o.stroke ? { width: o.stroke, color: o.strokeColor } : undefined, bold: o.bold });
     } else {
       text(ctx, p, cx, y, { ...o, align: 'left', alpha: a });
     }
@@ -392,15 +392,51 @@ export function panel(ctx, x, y, w, h, o = {}) {
 }
 
 // Chinese words followed by a number in the math font, as one centred label: "平均 1.1".
+// Subtitles: single-letter variables (s, n, t, s₁², σ², μ₀, ν …) are drawn from the
+// math font, so they look the same as in the formulas (in the text font ν looks like a v).
+const GREEK_TEX = { 'ν': '\\nu', 'σ': '\\sigma', 'μ': '\\mu', 'ε': '\\varepsilon', 'χ': '\\chi' };
+const SUBSCR = '₀₁₂₃₄₅₆₇₈₉', SUPSCR = { '²': '2', '³': '3', '⁴': '4' };
+const MATH_TOKEN = /(?<![A-Za-z])([A-Za-zνσμεχ])([₀-₉]*)([²³⁴]?)(?![A-Za-z])/g;
+const tokenCache = new Map();
+function tokenTex(m) {
+  let r = tokenCache.get(m[0]);
+  if (!r) {
+    let src = GREEK_TEX[m[1]] || m[1];
+    if (m[2]) src += '_{' + [...m[2]].map((c) => SUBSCR.indexOf(c)).join('') + '}';
+    if (m[3]) src += '^{' + SUPSCR[m[3]] + '}';
+    r = tex(src, { inline: true });
+    tokenCache.set(m[0], r);
+  }
+  return r;
+}
+export function subtitleParts(s) {
+  const parts = [];
+  let last = 0;
+  for (const m of s.matchAll(MATH_TOKEN)) {
+    if (m.index > last) parts.push(s.slice(last, m.index));
+    parts.push(tokenTex(m));
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) parts.push(s.slice(last));
+  return parts;
+}
+
+// Text with $...$ spans set as inline math, e.g. mixed('自由度为 $\\nu$ 的分布').
+// Call it at build time: it creates formulas.
+export function mixed(s) {
+  return s.split(/(\$[^$]+\$)/).filter(Boolean).map((p) => (p[0] === '$' ? tex(p.slice(1, -1), { inline: true }) : p));
+}
+
 export function labelNum(ctx, words, s, x, y, o = {}) {
   const size = o.size || 26;
   const nsize = size * (o.numScale || 1.08);
-  const ww = measure(ctx, words, size, o.weight || 400);
+  const ww = Array.isArray(words) ? richWidth(ctx, words, { ...o, size }) : measure(ctx, words, size, o.weight || 400);
   const gap = size * 0.3;
   const nw = numWidth(s, nsize);
   const total = ww + gap + nw;
   const x0 = o.align === 'left' ? x : o.align === 'right' ? x - total : x - total / 2;
-  text(ctx, words, x0, y, { ...o, size, align: 'left' });
+  if (Array.isArray(words)) rich(ctx, words, x0, y, { ...o, size, align: 'left' });
+  else text(ctx, words, x0, y, { ...o, size, align: 'left' });
   num(ctx, s, x0 + ww + gap, y, nsize, { color: o.color, alpha: o.alpha, align: 'left' });
   return total;
 }

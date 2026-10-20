@@ -1,7 +1,7 @@
 // 七、t 分布
 import { C, W, H } from '../engine/theme.js';
 import { tex, drawTex, drawTexMorph } from '../engine/tex.js';
-import { text, num, labelNum, line, arrow, dot, Axis, Plot, span, brace, braceTip, roundRect, rich, poly, fillPoly, panel } from '../engine/draw.js';
+import { text, num, labelNum, line, arrow, dot, Axis, Plot, span, brace, braceTip, roundRect, rich, poly, fillPoly, panel, mixed } from '../engine/draw.js';
 import { prog, win, ease, clamp, lerp, rgba, rng, normalSampler, fmt, normPdf, normCdf, chi2Pdf, scaledChi2Pdf, tPdf, mixColor } from '../engine/util.js';
 import { drawGrid, cellCenter } from './common.js';
 
@@ -11,6 +11,21 @@ export function build7(N) {
   const S = N.chapter(7);
   const { A } = S;
   const layers = [];
+  const LB = {
+    gaps: mixed('$n-1$ 条间距'),
+    div: mixed('$\\div\\,\\sigma^2$'),
+    eachz: mixed('每个 $z$ 都是标准正态变量，彼此独立'),
+    chi: mixed('自由度为 $\\nu$ 的卡方分布'),
+    zx: mixed('（$z$ 是标准正态变量，$X=z^2$）'),
+    z4: mixed('曲线 $z^4$ ×（正态密度）下的面积 = 3'),
+    divs: mixed('分子、分母同除以 $\\sigma/\\sqrt{n}$'),
+    zv: mixed('$Z$ 与 $V$ 相互独立'),
+    only: mixed('分母的分布只取决于 $\\nu$'),
+    onlyall: mixed('只取决于 $\\nu$，与 $\\mu$、$\\sigma$ 无关'),
+    tnu: mixed('自由度为 $\\nu$ 的 $t$ 分布'),
+    ifw: mixed('如果分母恰好是 $w$：$t$ 是标准差为 $1/w$ 的正态变量'),
+    den: mixed('分母 $s/\\sigma$ 的分布（$\\nu=3$）'),
+  };
   const fSig = T(String.raw`\sigma^2`, { inline: true }), fZero = T('0', { inline: true }), fMSig = T(String.raw`-\sigma^2`, { inline: true });
 
   // =====================================================================
@@ -222,7 +237,7 @@ export function build7(N) {
         rich(ctx, ['→ 样本均值 ', fXb], 560, 330, { size: 30, color: C.text, alpha: A3 * p1 });
         const p2 = prog(t, c.s2gaps, 0.7);
         roundRect(ctx, 1100, 220, 520, 170, 18, { fill: C.dev, fillAlpha: 0.1, stroke: C.dev, width: 2, alpha: A3 * p1 * p2 });
-        text(ctx, 'n − 1 条间距', 1360, 262, { size: 28, color: C.dev, alpha: A3 * p1 * p2 });
+        rich(ctx, LB.gaps, 1360, 262, { size: 28, color: C.dev, alpha: A3 * p1 * p2 });
         rich(ctx, ['→ ', fS2], 1360, 330, { size: 30, color: C.text, alpha: A3 * p1 * p2 });
         const pc1 = prog(t, c.check, 1.2, ease.linear), pc2 = prog(t, c.check + 1.6, 1.2, ease.linear);
         drawTex(ctx, chk1, 960, 500, 36, { alpha: A3 * p1 * clamp(pc1 * 3), write: pc1 });
@@ -246,19 +261,19 @@ export function build7(N) {
           drawTex(ctx, f, xs[i], 260, 34, { alpha: A3 * pi, color: C.dev });
           const pz = prog(t, c.z2 + i * 0.2, 0.6);
           if (pz > 0) {
-            if (i !== 2) text(ctx, '÷ σ²', xs[i], 330, { size: 24, color: C.dim, alpha: A3 * pz });
+            if (i !== 2) rich(ctx, LB.div, xs[i], 330, { size: 24, color: C.dim, alpha: A3 * pz });
             arrow(ctx, xs[i], 350, xs[i], 390, { color: C.dim, width: 2, alpha: A3 * pz });
             drawTex(ctx, zTex[i], xs[i], 430, 40, { alpha: A3 * pz, color: C.normal });
           }
         });
         const pind = prog(t, c.z2 + 2.0, 0.6);
-        text(ctx, '每个 z 都是标准正态变量，彼此独立', 920, 500, { size: 26, color: C.normal, alpha: A3 * pind });
+        rich(ctx, LB.eachz, 920, 500, { size: 26, color: C.normal, alpha: A3 * pind });
         const pr = prog(t, c.ratio, 1.6, ease.linear);
         if (pr > 0) drawTex(ctx, fRatio, 960, 620, 50, { alpha: A3 * clamp(pr * 3), write: pr, colors: { z: C.normal } });
         const pc = prog(t, c.chi, 1.2, ease.linear);
         if (pc > 0) {
           drawTex(ctx, fChi, 760, 780, 46, { alpha: A3 * clamp(pc * 3), write: pc, colors: { z: C.normal } });
-          text(ctx, '自由度为 ν 的卡方分布', 760, 850, { size: 24, color: C.dim, alpha: A3 * prog(t, c.chi + 1.4, 0.5) });
+          rich(ctx, LB.chi, 760, 850, { size: 24, color: C.dim, alpha: A3 * prog(t, c.chi + 1.4, 0.5) });
         }
         const pd = prog(t, c.div, 1.0, ease.linear);
         if (pd > 0) drawTex(ctx, fChiDiv, 1300, 790, 50, { alpha: A3 * clamp(pd * 3), write: pd });
@@ -307,7 +322,7 @@ export function build7(N) {
       const w0 = prog(t, d.start, 1.2, ease.linear);
       drawTex(ctx, fVar, X0, 180, 44, { alpha: A4 * clamp(w0 * 3), write: w0 });
       const w1 = prog(t, d.mean1 + 2.0, 0.8, ease.linear);
-      if (w1 > 0) { drawTex(ctx, fEz2, X0, 270, 44, { alpha: A4 * clamp(w1 * 3), write: w1 }); text(ctx, '（z 是标准正态变量，X = z²）', X0, 322, { size: 22, color: C.dim, alpha: A4 * clamp(w1 * 3) }); }
+      if (w1 > 0) { drawTex(ctx, fEz2, X0, 270, 44, { alpha: A4 * clamp(w1 * 3), write: w1 }); rich(ctx, LB.zx, X0, 322, { size: 22, color: C.dim, alpha: A4 * clamp(w1 * 3) }); }
       const w2 = prog(t, d.four + 0.4, 1.2, ease.linear);
       if (w2 > 0) drawTex(ctx, fEz4, X0, 390, 44, { alpha: A4 * clamp(w2 * 3), write: w2 });
       const w3 = prog(t, d.var2, 1.0, ease.linear);
@@ -319,7 +334,7 @@ export function build7(N) {
         poly(ctx, PZ.curve(z4, -4.2, 4.2, 160), { color: C.normal, width: 2.5, alpha: A4 * pz });
         line(ctx, PZ.x, PZ.Y(0), PZ.x + PZ.w, PZ.Y(0), { color: C.axis, width: 2, alpha: A4 * pz });
         for (const v of [-4, -2, 0, 2, 4]) num(ctx, fmt(v, 0), PZ.X(v), PZ.Y(0) + 26, 20, { color: C.dim, alpha: A4 * pz });
-        text(ctx, '曲线 z⁴ ×（正态密度）下的面积 = 3', PZ.x + PZ.w / 2, PZ.y - 34, { size: 22, color: C.normal, alpha: A4 * pz * prog(t, d.three, 0.5) });
+        rich(ctx, LB.z4, PZ.x + PZ.w / 2, PZ.y - 34, { size: 22, color: C.normal, alpha: A4 * pz * prog(t, d.three, 0.5) });
       }
       // the analogy with σ²/n
       const pa = prog(t, d.same + 0.2, 0.7);
@@ -399,22 +414,22 @@ export function build7(N) {
       if (pm <= 0) drawTex(ctx, fT0, P.x, P.y, P.size, { alpha: A5, write: prog(t, e.start, 0.8, ease.linear) });
       else drawTexMorph(ctx, fT0, P, fT1, P, pm, { alpha: A5, colorsB: { n: C.normal, d: C.s } });
       const pw = win(t, e.which, e.num + 0.4, 0.4, 0.5);
-      if (pw > 0) text(ctx, '分子、分母同除以 σ/√n', 960, 530, { size: 28, color: C.hi, alpha: A5 * pw });
+      if (pw > 0) rich(ctx, LB.divs, 960, 530, { size: 28, color: C.hi, alpha: A5 * pw });
       const pn = prog(t, e.num, 1.0, ease.linear);
       if (pn > 0) drawTex(ctx, fZdef, 640, 615, 42, { alpha: A5 * clamp(pn * 3), write: pn, color: C.normal });
       const pd = prog(t, e.den, 1.2, ease.linear);
       if (pd > 0) drawTex(ctx, fDdef, 1300, 615, 42, { alpha: A5 * clamp(pd * 3), write: pd, color: C.s });
       const pi = prog(t, e.den + 1.4, 0.6);
-      if (pi > 0) text(ctx, 'Z 与 V 相互独立', 960, 702, { size: 30, color: C.hi, alpha: A5 * pi });
+      if (pi > 0) rich(ctx, LB.zv, 960, 702, { size: 30, color: C.hi, alpha: A5 * pi });
       const po = prog(t, e.only, 0.6);
-      if (po > 0) text(ctx, '分母的分布只取决于 ν', 1300, 695, { size: 24, color: C.s, alpha: A5 * po * (1 - pi * 0) });
+      if (po > 0) rich(ctx, LB.only, 1300, 695, { size: 24, color: C.s, alpha: A5 * po * (1 - pi * 0) });
       const pf = prog(t, e.so, 1.2, ease.linear);
       if (pf > 0) {
         drawTex(ctx, fFinal, 960, 812, 60, { alpha: A5 * clamp(pf * 3), write: pf, color: C.t });
-        text(ctx, '只取决于 ν，与 μ、σ 无关', 960, 900, { size: 28, color: C.text, alpha: A5 * prog(t, e.so + 1.6, 0.6) });
+        rich(ctx, LB.onlyall, 960, 900, { size: 28, color: C.text, alpha: A5 * prog(t, e.so + 1.6, 0.6) });
       }
       const pt = prog(t, e.name, 0.6);
-      if (pt > 0) text(ctx, '自由度为 ν 的 t 分布', 1460, 812, { size: 30, color: C.t, alpha: A5 * pt, align: 'left' });
+      if (pt > 0) rich(ctx, LB.tnu, 1460, 812, { size: 30, color: C.t, alpha: A5 * pt, align: 'left' });
     },
   });
 
@@ -454,7 +469,7 @@ export function build7(N) {
       line(ctx, PT.x, PT.Y(0), PT.x + PT.w, PT.Y(0), { color: C.axis, width: 2, alpha: A6 });
       for (const v of [-4, -2, 0, 2, 4]) num(ctx, fmt(v, 0), PT.X(v), PT.Y(0) + 28, 22, { color: C.dim, alpha: A6 });
       const ppl = prog(t, f.start + 0.3, 0.8);
-      text(ctx, '如果分母恰好是 w：t 是标准差为 1/w 的正态变量', PT.x + PT.w / 2, 220, { size: 28, color: C.text, alpha: A6 * prog(t, f.sdw, 0.6) * (1 - prog(t, f.random - 0.3, 0.5)) });
+      rich(ctx, LB.ifw, PT.x + PT.w / 2, 220, { size: 28, color: C.text, alpha: A6 * prog(t, f.sdw, 0.6) * (1 - prog(t, f.random - 0.3, 0.5)) });
       // four fixed values of w
       const p4 = 1 - prog(t, f.mix - 0.2, 0.8);
       ws.forEach((w, i) => {
@@ -468,7 +483,7 @@ export function build7(N) {
       const pin = prog(t, f.random, 0.7);
       if (pin > 0) {
         const pa = A6 * pin;
-        text(ctx, '分母 s/σ 的分布（ν = 3）', PW.x + PW.w / 2, PW.y - 30, { size: 22, color: C.soft, alpha: pa });
+        rich(ctx, LB.den, PW.x + PW.w / 2, PW.y - 30, { size: 22, color: C.soft, alpha: pa });
         line(ctx, PW.x, PW.Y(0), PW.x + PW.w, PW.Y(0), { color: C.axis, width: 2, alpha: pa });
         for (const v of [0, 1, 2]) num(ctx, String(v), PW.X(v), PW.Y(0) + 24, 20, { color: C.dim, alpha: pa });
         const L = [[PW.X(0), PW.Y(0)]], R = [[PW.X(1), PW.Y(0)]];

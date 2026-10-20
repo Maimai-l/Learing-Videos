@@ -1,7 +1,7 @@
 // 四、用数据估计方差：为什么除以 n − 1
 import { C, W, H } from '../engine/theme.js';
 import { tex, drawTex, drawTexMorph } from '../engine/tex.js';
-import { text, num, labelNum, line, arrow, dot, Axis, Plot, span, brace, braceTip, roundRect, rich, poly, fillPoly, panel } from '../engine/draw.js';
+import { text, num, labelNum, line, arrow, dot, Axis, Plot, span, brace, braceTip, roundRect, rich, poly, fillPoly, panel, mixed } from '../engine/draw.js';
 import { prog, win, ease, clamp, lerp, rgba, normalSampler, fmt, keys, mixColor } from '../engine/util.js';
 import { DATA, MEAN, stackDots, histBars, binCounts, bestSeed } from './common.js';
 
@@ -33,6 +33,12 @@ export function build4(N) {
   const S = N.chapter(4);
   const { A } = S;
   const layers = [];
+  const LB = {
+    est: mixed('估计 $\\sigma^2$'),
+    anyc: mixed('到任意一点 $c$ 的距离平方和'),
+    nq: mixed('$n$ ×（样本均值与 $c$ 的距离）²'),
+    nterm: mixed('$n$ 项，每项平均 '),
+  };
   const ax = new Axis({ x0: 140, x1: 888, y: 790, v0: -1, v1: 3.4 });
   const PL = new Plot({ x: 1100, y: 300, w: 680, h: 460, xr: [-0.3, 2.5], yr: [0, 15] });
 
@@ -159,7 +165,7 @@ export function build4(N) {
       const pe = prog(t, a.avg, 1.6, ease.linear) * (1 - prog(t, a.rep - 0.3, 0.5));
       if (pe > 0) {
         drawTex(ctx, fEst, 1440, 300, 46, { alpha: A1 * clamp(pe * 3), write: pe });
-        text(ctx, '估计 σ²', 1440, 390, { size: 28, color: C.sigma, alpha: A1 * prog(t, a.avg + 1.6, 0.5) * (1 - prog(t, a.rep - 0.3, 0.5)) });
+        rich(ctx, LB.est, 1440, 390, { size: 28, color: C.sigma, alpha: A1 * prog(t, a.avg + 1.6, 0.5) * (1 - prog(t, a.rep - 0.3, 0.5)) });
       }
       const ps = prog(t, a.rep, 0.6) * (1 - prog(t, a.unk - 0.2, 0.6));
       if (ps > 0) {
@@ -385,11 +391,11 @@ export function build4(N) {
           if (pl <= 0) return;
           const b = L4.box(P4.x, PY, PS, 'c', 'm', tag);
           brace(ctx, b.x0, b.y1 + 12, b.x1, b.y1 + 12, { side: -1, depth: 14, color: col, alpha: A2 * pl });
-          text(ctx, words, b.cx, b.y1 + 58, { size: 26, color: col, alpha: A2 * pl });
+          rich(ctx, Array.isArray(words) ? words : [words], b.cx, b.y1 + 58, { size: 26, color: col, alpha: A2 * pl });
         };
-        lab('l', '到任意一点 c 的距离平方和', d.tells + 0.4, C.text);
+        lab('l', LB.anyc, d.tells + 0.4, C.text);
         lab('p', '到样本均值的距离平方和', d.eqX, C.dev);
-        lab('q', 'n ×（样本均值与 c 的距离）²', d.plus, C.hi);
+        lab('q', LB.nq, d.plus, C.hi);
         const pn = prog(t, d.nonneg, 0.6) * (1 - ex);
         if (pn > 0) {
           const b = L4.box(P4.x, PY, PS, 'c', 'm', 'q');
@@ -526,7 +532,7 @@ export function build4(N) {
         const b = L5.box(P.x, P.y, P.size, 'c', 'm', tag);
         draw(b, pl);
       };
-      below('l', e.left + 0.4, (b, pl) => rich(ctx, ['n 项，每项平均 ', eS], b.cx, b.y1 + 40, { size: 24, color: C.err, alpha: A4 * pl }));
+      below('l', e.left + 0.4, (b, pl) => rich(ctx, [...LB.nterm, eS], b.cx, b.y1 + 40, { size: 24, color: C.err, alpha: A4 * pl }));
       below('q', e.recall + 0.6, (b, pl) => drawTex(ctx, eWhy, b.cx, b.y1 + 44, 34, { color: C.xbar, alpha: A4 * pl }));
       // blocks: n parts = (n − 1) parts + 1 part
       const yB = 700;

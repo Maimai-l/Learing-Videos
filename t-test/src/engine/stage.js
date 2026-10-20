@@ -2,7 +2,7 @@
 // render(ctx, t) is a pure function of t, so any frame can be drawn in any order.
 import { W, H, C, FONT } from './theme.js';
 import { clamp, ease, rgba, prog, win } from './util.js';
-import { text, measure, line } from './draw.js';
+import { text, measure, line, rich, subtitleParts } from './draw.js';
 
 let bgCanvas = null;
 function background() {
@@ -63,7 +63,10 @@ function drawSubtitles(ctx, t, cues, lift = 0) {
   const lines = splitLines(ctx, c.text);
   lines.forEach((ln, i) => {
     const y = SUB.y - lift - (lines.length - 1 - i) * (SUB.size * 1.32);
-    text(ctx, ln, W / 2, y, { size: SUB.size, weight: 500, color: '#F3F5F9', alpha: a, stroke: 5, strokeColor: 'rgba(5,7,10,0.85)', shadow: 10, letter: 0.5 });
+    const parts = subtitleParts(ln);
+    const st = { size: SUB.size, weight: 500, color: '#F3F5F9', alpha: a, stroke: 5, strokeColor: 'rgba(5,7,10,0.85)', shadow: 10 };
+    if (parts.length === 1 && typeof parts[0] === 'string') text(ctx, ln, W / 2, y, { ...st, letter: 0.5 });
+    else rich(ctx, parts, W / 2, y, { ...st, texScale: 1.08, bold: 0.9 });
   });
 }
 

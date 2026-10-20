@@ -1,7 +1,7 @@
 // 二、平均值会偏离多远：推出 σ/√n
 import { C, W, H } from '../engine/theme.js';
 import { tex, drawTex, drawTexMorph } from '../engine/tex.js';
-import { text, num, numWidth, labelNum, line, arrow, dot, Axis, span, brace, braceTip, roundRect, rich, poly, Plot, fillPoly, panel } from '../engine/draw.js';
+import { text, num, numWidth, labelNum, line, arrow, dot, Axis, span, brace, braceTip, roundRect, rich, poly, Plot, fillPoly, panel, mixed } from '../engine/draw.js';
 import { prog, win, ease, clamp, lerp, rgba, normalSampler, fmt, normPdf, mixColor } from '../engine/util.js';
 import { DATA, MEAN, stackDots, histBars, binCounts, drawGrid, cellCenter, bestSeed } from './common.js';
 
@@ -11,6 +11,11 @@ export function build2(N) {
   const S = N.chapter(2);
   const { A, E } = S;
   const layers = [];
+  const LB = {
+    nRow: mixed('$n$ 行'),
+    nCol: mixed('$n$ 列'),
+    n5: mixed('（图中 $n=5$）'),
+  };
 
   // =====================================================================
   // 2A  errors and the sample
@@ -651,10 +656,10 @@ export function build2(N) {
       if (pn > 0) {
         const x0 = G.x, y0 = G.y, L = 5 * G.cell;
         brace(ctx, x0 - 82, y0 + L, x0 - 82, y0, { side: 1, depth: 18, color: C.soft, alpha: A5 * pn });
-        text(ctx, 'n 行', x0 - 150, y0 + L / 2, { size: 30, color: C.soft, alpha: A5 * pn });
+        rich(ctx, LB.nRow, x0 - 150, y0 + L / 2, { size: 30, color: C.soft, alpha: A5 * pn });
         brace(ctx, x0, y0 - 74, x0 + L, y0 - 74, { side: 1, depth: 18, color: C.soft, alpha: A5 * pn });
-        text(ctx, 'n 列', x0 + L / 2, y0 - 128, { size: 30, color: C.soft, alpha: A5 * pn });
-        text(ctx, '（图中 n = 5）', x0 + L + 30, y0 + L - 10, { size: 22, color: C.dim, alpha: A5 * pn, align: 'left' });
+        rich(ctx, LB.nCol, x0 + L / 2, y0 - 128, { size: 30, color: C.soft, alpha: A5 * pn });
+        rich(ctx, LB.n5, x0 + L + 30, y0 + L - 10, { size: 22, color: C.dim, alpha: A5 * pn, align: 'left' });
       }
       // results
       const p2 = prog(t, e.two, 1.3, ease.linear) * (1 - clear2);

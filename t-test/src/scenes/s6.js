@@ -1,7 +1,7 @@
 // 六、分母也会变：用 1.96 会误判
 import { C, W, H } from '../engine/theme.js';
 import { tex, drawTex, drawTexMorph } from '../engine/tex.js';
-import { text, num, labelNum, line, arrow, dot, Axis, Plot, span, brace, roundRect, rich, poly, fillPoly, panel } from '../engine/draw.js';
+import { text, num, labelNum, line, arrow, dot, Axis, Plot, span, brace, roundRect, rich, poly, fillPoly, panel, mixed } from '../engine/draw.js';
 import { prog, win, ease, clamp, lerp, rgba, normalSampler, rng, fmt, normPdf, normCdf, chi2Pdf } from '../engine/util.js';
 import { histBars, binCounts, bestSeed } from './common.js';
 
@@ -11,6 +11,12 @@ export function build6(N) {
   const S = N.chapter(6);
   const { A } = S;
   const layers = [];
+  const LB = {
+    sls: mixed('$s<\\sigma$：约'),
+    n4: mixed('样本量 $n=4$'),
+    tst: mixed('$t$ 统计量'),
+    sd: mixed('$s$ 的分布：约六成在左边'),
+  };
   const a = {
     start: S.first,
     vary: A('但每次抽样得到的 s 仍然有大有小'),
@@ -73,10 +79,10 @@ export function build6(N) {
       line(ctx, axS.X(1), axS.y + 12, axS.X(1), axS.y - 340, { color: C.sigma, width: 2.5, alpha: A1 * pv });
       rich(ctx, ['真实的 ', fSig], axS.X(1), axS.y - 362, { size: 26, color: C.sigma, alpha: A1 * pv });
       if (hi > 0) {
-        labelNum(ctx, 's < σ：约', Math.round(fracBelow * 100) + '%', axS.X(0.45), axS.y - 340, { size: 32, color: C.hi, alpha: A1 * hi });
+        labelNum(ctx, LB.sls, Math.round(fracBelow * 100) + '%', axS.X(0.45), axS.y - 340, { size: 32, color: C.hi, alpha: A1 * hi });
       }
       const pf = prog(t, a.four, 0.6) * (1 - hi);
-      text(ctx, '样本量 n = 4', axS.X(0.45), axS.y - 340, { size: 30, color: C.text, alpha: A1 * pf });
+      rich(ctx, LB.n4, axS.X(0.45), axS.y - 340, { size: 30, color: C.text, alpha: A1 * pf });
     },
   });
 
@@ -99,7 +105,7 @@ export function build6(N) {
       const pm = prog(t, a.tstat + 0.9, 1.0, ease.inOut);
       const P = { x: 960, y: 170, size: 50 };
       drawTexMorph(ctx, fZ, P, fT, P, pm, { alpha: A2, colorsA: { d: C.sigma }, colorsB: { d: C.s }, map: { d: 'd' } });
-      text(ctx, 't 统计量', 1160, 170, { size: 28, color: C.s, alpha: A2 * prog(t, a.tstat + 2.0, 0.6) });
+      rich(ctx, LB.tst, 1160, 170, { size: 28, color: C.s, alpha: A2 * prog(t, a.tstat + 2.0, 0.6) });
       // the probability of crossing 1.96 for a given s/σ
       const pp = prog(t, a.small - 0.2, 0.7);
       if (pp <= 0) return;
@@ -145,7 +151,7 @@ export function build6(N) {
         ptsR.push([PL.X(2.2), PL.Y(0)]);
         fillPoly(ctx, ptsL, C.hi, 0.18 * pa * pdist);
         fillPoly(ctx, ptsR, C.s, 0.14 * pa * pdist);
-        text(ctx, 's 的分布：约六成在左边', PL.X(1.62), PL.Y(0.44), { size: 24, color: C.soft, alpha: pa * pdist });
+        rich(ctx, LB.sd, PL.X(1.62), PL.Y(0.44), { size: 24, color: C.soft, alpha: pa * pdist });
       }
       const po = prog(t, a.over, 0.7);
       if (po > 0) {

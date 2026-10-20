@@ -1,7 +1,7 @@
 // 三、多大的偏离才算少见：正态分布、标准化、5% 与 1.96
 import { C, W, H } from '../engine/theme.js';
 import { tex, drawTex, drawTexMorph } from '../engine/tex.js';
-import { text, num, labelNum, line, arrow, dot, Axis, span, brace, braceTip, roundRect, rich, poly, fillPoly, panel } from '../engine/draw.js';
+import { text, num, labelNum, line, arrow, dot, Axis, span, brace, braceTip, roundRect, rich, poly, fillPoly, panel, mixed } from '../engine/draw.js';
 import { prog, win, ease, clamp, lerp, rgba, normalSampler, fmt, normPdf, normCdf } from '../engine/util.js';
 import { DATA, MEAN, stackDots } from './common.js';
 
@@ -22,6 +22,9 @@ export function build3(N) {
   const S = N.chapter(3);
   const { A } = S;
   const layers = [];
+  const LB = {
+    pv: mixed('$p$ 值 = 两侧面积'),
+  };
 
   // =====================================================================
   // 3A  the question as a probability; the normal assumption
@@ -406,7 +409,7 @@ export function build3(N) {
         }
         const pp = prog(t, d.pv, 0.6);
         if (pp > 0) {
-          text(ctx, 'p 值 = 两侧面积', 960, 360, { size: 32, color: C.err, alpha: shadeA * pp });
+          rich(ctx, LB.pv, 960, 360, { size: 32, color: C.err, alpha: shadeA * pp });
           fillPoly(ctx, areaPts(X1, Y1, h1, ZILL, 3.6), C.err, 0.5 * shadeA * pp);
           fillPoly(ctx, areaPts(X1, Y1, h1, -3.6, -ZILL), C.err, 0.5 * shadeA * pp);
         }
