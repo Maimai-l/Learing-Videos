@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>t 检验与自由度</title>
+<!-- Dev version of the player (needs http: node tools/server.mjs, then /src/player.html).
+     ?t=60 opens paused at 60 s, ?debug shows the time on the frame.
+     The single-file version is built by tools/bundle.mjs. -->
+<style>
+  @font-face { font-family: 'Noto Sans SC'; font-weight: 400; font-display: block; src: url('../node_modules/@expo-google-fonts/noto-sans-sc/400Regular/NotoSansSC_400Regular.ttf'); }
+  @font-face { font-family: 'Noto Sans SC'; font-weight: 500; font-display: block; src: url('../node_modules/@expo-google-fonts/noto-sans-sc/500Medium/NotoSansSC_500Medium.ttf'); }
+  @font-face { font-family: 'Noto Sans SC'; font-weight: 700; font-display: block; src: url('../node_modules/@expo-google-fonts/noto-sans-sc/700Bold/NotoSansSC_700Bold.ttf'); }
+  @font-face { font-family: 'Noto Serif SC'; font-weight: 400; font-display: block; src: url('../node_modules/@expo-google-fonts/noto-serif-sc/400Regular/NotoSerifSC_400Regular.ttf'); }
+  @font-face { font-family: 'Noto Serif SC'; font-weight: 600; font-display: block; src: url('../node_modules/@expo-google-fonts/noto-serif-sc/600SemiBold/NotoSerifSC_600SemiBold.ttf'); }
+</style>
+<link rel="stylesheet" href="./player/player.css">
+</head>
+<body>
+<script type="module">
+  import { startPlayer } from './player/player.js';
+  const q = new URLSearchParams(location.search);
+  startPlayer({
+    tex: '../build/tex.json',
+    timeline: '../build/timeline.json',
+    audio: q.get('audio') || '../build/audio/mix.m4a',
+    debug: q.has('debug'),
+    at: q.has('t') ? +q.get('t') : undefined,
+  });
+</script>
+</body>
+</html>

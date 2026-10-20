@@ -3,7 +3,8 @@ import { buildTitle } from './s0_title.js';
 import { build1 } from './s1.js';
 import { build2 } from './s2.js';
 import { build3 } from './s3.js';
+import { build4 } from './s4.js';
 
 export function buildLayers(N) {
-  return [...buildTitle(N), ...build1(N), ...build2(N).layers, ...build3(N).layers];
+  return [...buildTitle(N), ...build1(N), ...build2(N).layers, ...build3(N).layers, ...build4(N).layers];
 }
