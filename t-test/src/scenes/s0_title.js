@@ -37,7 +37,7 @@ export function makeTitleArt() {
     ctx.lineTo(W / 2 + lw / 2, y + 96);
     ctx.stroke();
     ctx.restore();
-    rich(ctx, ['为什么除以 ', sub1, ' 　·　 ', sub2, ' 分布从哪里来'], W / 2, y + 152, { size: 34, color: C.soft, alpha: a * ps, texScale: 1.15 });
+    rich(ctx, ['为什么除以 ', sub1, '，', sub2, ' 分布从哪里来'], W / 2, y + 152, { size: 34, color: C.soft, alpha: a * ps, texScale: 1.15 });
   };
 }
 

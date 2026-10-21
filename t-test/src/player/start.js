@@ -40,10 +40,8 @@ export function startPlayer({ tex, timeline, audio, debug = false, at } = {}) {
       const [texJson, tl] = await Promise.all([loadJSON(tex), loadJSON(timeline)]);
       const app = await boot({ tex: texJson, timeline: tl, debug });
       const tT = texSVG(texJson, 'i|t') || '<i class="tp-tex-fallback">t</i>';
-      const tN = texSVG(texJson, 'i|n-1') || '<i class="tp-tex-fallback">n − 1</i>';
       return {
         titleHTML: `<span class="tp-title-t">${tT}</span><span class="tp-title-cn">检验与自由度</span>`,
-        subtitleHTML: `为什么除以 <span class="tp-tex-wrap">${tN}</span><span class="tp-dot">·</span><span class="tp-tex-wrap">${tT}</span> 分布从哪里来`,
         duration: tl.total,
         render: app.renderTo,
         chapters: tl.chapters.map((c, i) => ({

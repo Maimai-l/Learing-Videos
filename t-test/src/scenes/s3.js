@@ -146,7 +146,7 @@ export function build3(N) {
     name: A('这一步叫作标准化'),
     end: A('把标准化用到样本均值上'),
   };
-  const Y0 = 760, U = 150, CX = 900; // standard units: x = CX + U·u
+  const Y0 = 760, U = 150, CX = 900; // standard units: x = CX + U × u
   const hN = (u) => normPdf(u) * 720; // curve height in px
   const fStd = T(String.raw`N(0,\,1)`);
   const fStdW = T(String.raw`P(X>a)=P\!\left(Z>\frac{a-m}{d}\right)`);

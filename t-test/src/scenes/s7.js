@@ -181,7 +181,7 @@ export function build7(N) {
         for (const s0 of [-1.2, 0, 1.2]) {
           const ps = prog(t, b.same - 0.6 + (s0 + 1.2) * 0.3, 0.6);
           if (ps <= 0) continue;
-          // sideways density of the gap within the slice: the same N(0, 2·0.62²) everywhere
+          // sideways density of the gap within the slice: the same N(0, 2 × 0.62²) everywhere
           const sd = Math.SQRT2 * 0.62;
           const pts = [];
           for (let v = -2.4; v <= 2.4001; v += 0.05) pts.push([L.cx + s0 * UNIT + normPdf(v, 0, sd) * 110, L.cy - v * UNIT]);
