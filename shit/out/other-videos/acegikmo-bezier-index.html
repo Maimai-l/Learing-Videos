@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		<title>Bezier</title>
+		<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+		<link rel="stylesheet" type="text/css" href="BezierStyles.css">
+		<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+		<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+		<!-- analytics -->
+		<script defer="" src="https://analytics.eu.umami.is/script.js" data-website-id="62286736-7182-4acb-80c8-45eeffb4a74f"></script>
+
+
+		<script>
+
+			var hRad = 20;
+
+			var p0 = { x: 250, y: 280 };
+			var p1 = { x: 200, y: 100 };
+			var p2 = { x: 600, y: 100 };
+			var p3 = { x: 550, y: 280 };
+
+			var globt = 0.5;
+
+			var isAnimating = getUrlProperty("animate");
+			var animateLinear = getUrlProperty("linear");
+			var compensated = getUrlProperty("compensated") == "true";
+
+			var lengthTablePrecision = 32;
+			var lengthTable = [];
+			var totalLength = 0;
+			recalcLengthTableInfo();
+
+			$(function() {
+				$( "#slider" ).slider({
+					value:0.5,
+					min: 0,
+					max: 1,
+					step: 0.001,
+					slide: function( event, ui ) {
+						$( "#amount" ).html( ui.value );
+						globt = ui.value;
+						repaint_canvas();
+					}
+				});
+				$( "#amount" ).html( $( "#slider" ).slider( "value" ) );
+
+				$('#showLabels').click(function () {
+				    repaint_canvas();
+				});
+				$('#showP1P2line').click(function () {
+				    repaint_canvas();
+				});
+				$('#showIntermediateLines').click(function () {
+					$("input.intermediate").prop("disabled", !this.checked);
+				    repaint_canvas();
+				});
+				$('#showLerpPointsLayer1').click(function () {
+				   	repaint_canvas();
+				});
+				$('#showLerpLinesLayer1').click(function () {
+				    repaint_canvas();
+				});
+				$('#showLerpPointsLayer2').click(function () {
+				    repaint_canvas();
+				});
+				$('#showLerpLinesLayer2').click(function () {
+				    repaint_canvas();
+				});
+				$('#showMainPoint').click(function () {
+				    repaint_canvas();
+				});
+				$('#showCurve').click(function () {
+					$("input.curveObject").prop("disabled", !this.checked);
+				    repaint_canvas();
+				});
+				
+				$('#showPathSpacers').click(function () {
+				    repaint_canvas();
+				});
+				$('#showQuadraticPaths').click(function () {
+				    repaint_canvas();
+				});
+				$('#showFastEvalLines').click(function () {
+				    repaint_canvas();
+				});
+				
+
+				repaint_canvas(0.5);
+
+ 				$( "#p0" ).draggable({ containment: "parent" ,
+					drag: function() {
+						var offset = $(this).position();
+						p0 = {x : offset.left + hRad, y : offset.top + hRad};
+						if(compensated){
+							recalcLengthTableInfo();
+						}
+						repaint_canvas();
+					}});
+ 				$( "#p0" ).css({left:p0.x - hRad, top:p0.y - hRad});
+ 				$( "#p1" ).draggable({ containment: "parent" ,
+					drag: function() {
+						var offset = $(this).position();
+						p1 = {x : offset.left + hRad, y : offset.top + hRad};
+						if(compensated){
+							recalcLengthTableInfo();
+						}
+						repaint_canvas();
+					}});
+ 				$( "#p1" ).css({left:p1.x - hRad, top:p1.y - hRad});
+ 				$( "#p2" ).draggable({ containment: "parent" ,
+					drag: function() {
+						var offset = $(this).position();
+						p2 = {x : offset.left + hRad, y : offset.top + hRad};
+						if(compensated){
+							recalcLengthTableInfo();
+						}
+						repaint_canvas();
+					}});
+ 				$( "#p2" ).css({left:p2.x - hRad, top:p2.y - hRad});
+ 				$( "#p3" ).draggable({ containment: "parent" ,
+					drag: function() {
+						var offset = $(this).position();
+						p3 = {x : offset.left + hRad, y : offset.top + hRad};
+						if(compensated){
+							recalcLengthTableInfo();
+						}
+						repaint_canvas();
+					}});
+ 				$( "#p3" ).css({left:p3.x - hRad, top:p3.y - hRad});
+
+ 				// Temporary update loop
+				setInterval(function(){
+					// Update the label with the counter value (and increment it)
+
+					if(isAnimating){
+						var timeSeconds = new Date().getTime() / 1000;
+						timeSeconds *= 0.1;
+						var t = timeSeconds - Math.floor(timeSeconds);
+						if(animateLinear){
+							globt = Math.abs( t * 2 - 1 );
+						} else {
+							globt = Math.sin( t * Math.PI * 2 ) * 0.5 + 0.5;
+						}
+
+						if( compensated ){
+							globt = percentageToT( globt );
+						}
+
+						repaint_canvas();
+					}
+				},4);
+
+			});
+
+			function percentageToT( p ){
+				if( p <= 0 )
+					return 0;
+				if( p >= 1 )
+					return 1;
+				var smpDist = p * totalLength;
+				for( var i = 0; i < lengthTablePrecision - 1; i++ ) {
+					if( smpDist >= lengthTable[i] && smpDist < lengthTable[i + 1] ) {
+						var ta = i / ( lengthTablePrecision - 1 );
+						var tb = ( i + 1 ) / ( lengthTablePrecision - 1 );
+						var dRange = lengthTable[i + 1] - lengthTable[i];
+						var dVal = smpDist - lengthTable[i];
+						var tMid = dVal / dRange;
+						return lerp( ta, tb, tMid );
+					}
+				}
+				return null;
+			}
+
+			function recalcLengthTableInfo() {
+				var prev = p0;
+				totalLength = 0;
+				lengthTable[0] = 0;
+				for( var i = 1; i < lengthTablePrecision; i++ ) {
+					var t = i / ( lengthTablePrecision - 1 );
+					var pt = get_bezier_point( t );
+					var diff = distance(prev,pt);
+					totalLength += diff;
+					lengthTable[i] = totalLength;
+					prev = pt;
+				}
+
+				// Normalize
+				//for( var i = 1; i < lengthTablePrecision; i++ ) {
+					//lengthTable[i] /= totalLength;
+					// console.log( i + " = " + lengthTable[i] );
+				//}
+				
+			}
+
+
+			function getUrlProperty( name ) {
+			    var url = location.href;
+			    name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+			    var regexS = "[\\?&]"+name+"=([^&#]*)";
+			    var regex = new RegExp( regexS );
+			    var results = regex.exec( url );
+			    return results == null ? null : results[1];
+			}
+			
+
+			function repaint_canvas(){
+
+				var t = globt;
+
+				var canvas = document.getElementById("canvas");
+				var ctx = canvas.getContext("2d");
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+				if (!ctx.setLineDash) {
+				    ctx.setLineDash = function () {}
+				}
+				//ctx.fillStyle = "rgba(0,0,0,1)";
+				//ctx.beginPath();
+				//ctx.rect(188, 50, 200, 100);
+				//ctx.fill();
+				//ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				var cP0 = "#4a6da1";
+				var cP1 = "#db961e";
+				var cP2 = "#abce4e";
+				var cP3 = "#ca4013";
+ 
+				
+				
+
+				var cMidQuad = 		"rgba(150,150,150,1)";
+				var cOuterLine =  	"rgba(200,200,200,1)";
+				var cMidLine = 		"rgba(200,200,200,1)";
+				var cCoreLine = 	"rgba(128,128,128,1)";
+
+				var cOuterPoint = 	"rgba(80,80,80,1)";
+				var cMidPoint = 	"rgba(80,80,80,1)";
+
+				var cCorePoint = 	"rgba(25,25,25,1)";
+
+				
+				var showLabels = document.getElementById('showLabels').checked;
+				var showP1P2line = document.getElementById('showP1P2line').checked;
+				var showIntermediateLines = document.getElementById('showIntermediateLines').checked;
+				var showLerpPointsLayer1 = document.getElementById('showLerpPointsLayer1').checked;
+				var showLerpLinesLayer1 = document.getElementById('showLerpLinesLayer1').checked;
+				var showLerpPointsLayer2 = document.getElementById('showLerpPointsLayer2').checked;
+				var showLerpLinesLayer2 = document.getElementById('showLerpLinesLayer2').checked;
+				var showMainPoint = document.getElementById('showMainPoint').checked;
+				var showCurve = document.getElementById('showCurve').checked;
+				var showPathSpacers = document.getElementById('showPathSpacers').checked;
+				var showQuadraticPaths = document.getElementById('showQuadraticPaths').checked;
+				var showFastEvalLines = document.getElementById('showFastEvalLines').checked;
+
+				ctx.lineWidth = 3;
+				ctx.strokeStyle = "rgba(255,255,255,1)";
+
+
+				
+
+
+				var a = lerpV2(p0,p1,t);
+				var b = lerpV2(p1,p2,t);
+				var c = lerpV2(p2,p3,t);
+				var d = lerpV2(a,b,t);
+				var e = lerpV2(b,c,t);
+
+
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = cOuterLine;
+
+				if(showIntermediateLines){
+
+					if(showLerpLinesLayer1){
+						ctx.beginPath();
+						ctx.moveTo(a.x,a.y);
+						ctx.lineTo(b.x,b.y);
+						ctx.lineTo(c.x,c.y);
+						ctx.stroke();
+					}
+					if(showLerpLinesLayer2){
+						ctx.strokeStyle = cMidLine;
+						ctx.beginPath();
+						ctx.moveTo(d.x,d.y);
+						ctx.lineTo(e.x,e.y);
+						ctx.stroke();
+					}
+				}
+
+
+				if(showQuadraticPaths){
+					ctx.strokeStyle = cMidQuad;
+					ctx.beginPath();
+					ctx.moveTo(p1.x,p1.y);
+					ctx.quadraticCurveTo(b.x,b.y,e.x,e.y);
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.moveTo(p0.x,p0.y);
+					ctx.quadraticCurveTo(a.x,a.y,d.x,d.y);
+					ctx.stroke();
+				}
+
+				
+				draw_bezier_border( ctx, showP1P2line );
+				
+				if(showPathSpacers && showCurve){
+					ctx.strokeStyle = cCoreLine;
+					ctx.lineWidth = 2;
+					var radius = 6;
+					for (var i = 0; i < 32; i++) {
+						var tVal = i/31;
+						
+						if(compensated)
+							tVal = percentageToT(tVal);
+						if(tVal > t)
+							break;
+						DrawSpacer(ctx, tVal, radius)
+					};
+					ctx.lineWidth = 3;
+					ctx.strokeStyle = "rgba(255,255,255,0.5)";
+				}
+
+				if(showIntermediateLines){
+					if(showLerpPointsLayer1){
+						ctx.fillStyle = cOuterPoint;
+						draw_circle(ctx,a, 4);
+						draw_circle(ctx,b, 4);
+						draw_circle(ctx,c, 4);
+					}
+					if(showLerpPointsLayer2){
+						ctx.fillStyle = cMidPoint;
+						draw_circle(ctx,d, 4);
+						draw_circle(ctx,e, 4);
+					}
+				}
+
+
+
+
+				if(showCurve){
+					ctx.lineWidth = 3;
+					ctx.strokeStyle = cCoreLine;
+					draw_bezier_path(ctx, t);
+				}
+				
+
+				var pt = get_bezier_point( t );
+				if(showMainPoint){
+					ctx.fillStyle = cCorePoint;
+					draw_circle(ctx,pt, 6);
+				}
+				//if(compensated){
+				//	var ptComp = get_bezier_point( percentageToT(t) );
+				//	ctx.fillStyle = cCoreLine;
+				//	draw_circle(ctx,ptComp, 6);
+				//}
+				
+				ctx.fillStyle = cP0;
+				draw_circle(ctx,p0, 4);
+				ctx.fillStyle = cP1;
+				draw_circle(ctx,p1, 4);
+				ctx.fillStyle = cP2;
+				draw_circle(ctx,p2, 4);
+				ctx.fillStyle = cP3;
+				draw_circle(ctx,p3, 4);
+
+
+
+				// Points
+				ctx.fillStyle = "rgba(255,255,255,0.5)";
+				ctx.strokeStyle = "rgba(255,255,255,0.5)";
+				//draw_circle(ctx,p0, 10);
+				//draw_circle(ctx,p1, 10);
+				//draw_circle(ctx,p2, 10);
+				//draw_circle(ctx,p3, 10);
+				ctx.lineWidth = 2;
+				ctx.setLineDash([2])
+				ctx.strokeStyle = cP0;
+				stroke_circle(ctx, p0, 12);
+				ctx.strokeStyle = cP1;
+				stroke_circle(ctx, p1, 12);
+				ctx.strokeStyle = cP2;
+				stroke_circle(ctx, p2, 12);
+				ctx.strokeStyle = cP3;
+				stroke_circle(ctx, p3, 12);
+				ctx.setLineDash([])
+				ctx.lineWidth = 3;
+
+				
+
+
+				if( showLabels ){
+					// Calc point label offsets
+					var labelDist = 32;
+					var labelDistIm = 20;
+					var labelheightMod = 9;
+					var dir10 = normalize(subV2(p0,p1));
+					var dir01 = negV2(dir10);
+					var dir12 = normalize(subV2(p2,p1));
+					var dir21 = negV2(dir12);
+					var dir23 = normalize(subV2(p3,p2));
+					var dir32 = negV2(dir23);
+
+					
+					var lPosP0 = getLabelOffset( p0, dir10, labelDist, labelheightMod );
+					var lPosP3 = getLabelOffset( p3, dir23, labelDist, labelheightMod );
+
+					var lPosP1;
+					var lPosP2;
+					if( showP1P2line ){
+						var dirP1 = sumDir(dir01, dir21);
+						var dirP2 = sumDir(dir12, dir32);
+						lPosP1 = getLabelOffset( p1, dirP1, labelDist, labelheightMod );
+						lPosP2 = getLabelOffset( p2, dirP2, labelDist, labelheightMod );
+					} else {
+						lPosP1 = getLabelOffset( p1, dir01, labelDist, labelheightMod );
+						lPosP2 = getLabelOffset( p2, dir32, labelDist, labelheightMod );
+					}
+					
+
+
+					
+
+
+					// Calc intermediate point label offsets
+					if(showIntermediateLines){
+
+						var dirAB = normalize(subV2(b,a));
+						var dirBA = negV2(dirAB);
+						var dirCB = normalize(subV2(b,c));
+						var dirBC = negV2(dirCB);
+						var dirDE = normalize(subV2(e,d));
+						var dirED = negV2(dirDE);
+
+						// B is a bit tricky:
+						var bDirFlat1 = rot90a(dir12);
+						var bDirFlat2 = rot90b(dir12);
+						var bDirWedge1 = sumDir(dirBA,dir12);
+						var bDirWedge2 = sumDir(dirBC,dir21);
+						var dotsp1 = sign(dotTang(dir01,dir12));
+						var dotsp2 = sign(dotTang(dir12,dir23));
+						var dotsb = sign(dotTang(dirAB,dirCB));
+
+						var dirB;
+						if(dotsp1 == -1 && dotsp2 == -1){
+							dirB = rot90a(dir12);
+						} else if(dotsp1 == 1 && dotsp2 == 1){
+							dirB = rot90b(dir12);
+						} else if(dotsp1 == -1 && dotsp2 == 1){
+							dirB = dotsb == 1 ? bDirWedge2 : bDirWedge1;
+						} else if(dotsp1 == 1 && dotsp2 == -1){
+							dirB = dotsb == 1 ? bDirWedge1 : bDirWedge2;
+						}
+
+						// C and E
+						var dirD;
+						var dirE;
+						dirD = sign(dotTang(dirDE,dirAB)) == 1 ? rot90a(dirAB) : rot90b(dirAB);
+						dirE = sign(dotTang(dirDE,dirBC)) == 1 ? rot90b(dirBC) : rot90a(dirBC);
+
+						var lPosA = getLabelOffset( a, condDir(dir01,dir12), labelDistIm, labelheightMod );
+						var lPosC = getLabelOffset( c, condDir(dir32,dir21), labelDistIm, labelheightMod );
+						var lPosB = getLabelOffset( b, dirB, labelDistIm, labelheightMod );
+						var lPosD = getLabelOffset( d, dirD, labelDistIm, labelheightMod );
+						var lPosE = getLabelOffset( e, dirE, labelDistIm, labelheightMod );
+
+						// Fade intermediate labels when getting too close to their points
+						var iFade = 1-Math.abs(globt * 2 - 1); // Triangle wave with peak in center
+						var iFade2 = iFade;
+						iFade *= 3;
+						iFade2 *= 1.5;
+						iFade2 -= 0.5;
+						iFade = iFade.clamp01();
+						iFade2 = iFade2.clamp01();
+					}
+
+
+					// Draw the point labels
+					ctx.font="18px sans-serif";
+					ctx.textAlign = 'center';
+					ctx.fillStyle = cP0;
+					ctx.fillText("p0",lPosP0.x,lPosP0.y);
+					ctx.fillStyle = cP1;
+					ctx.fillText("p1",lPosP1.x,lPosP1.y);
+					ctx.fillStyle = cP2;
+					ctx.fillText("p2",lPosP2.x,lPosP2.y);
+					ctx.fillStyle = cP3;
+					ctx.fillText("p3",lPosP3.x,lPosP3.y);
+
+					// Draw the intermediate point labels
+					if(showIntermediateLines){
+						if(showLerpPointsLayer1){
+							ctx.fillStyle = "rgba(128,128,128,"+iFade+")";
+							ctx.fillText("a",lPosA.x,lPosA.y);
+							ctx.fillText("b",lPosB.x,lPosB.y);
+							ctx.fillText("c",lPosC.x,lPosC.y);
+						}
+						if(showLerpPointsLayer2){
+							ctx.fillStyle = "rgba(128,128,128,"+iFade2+")";
+							ctx.fillText("d",lPosD.x,lPosD.y);
+							ctx.fillText("e",lPosE.x,lPosE.y);
+						}
+					}
+					ctx.fillStyle = "rgba(128,128,128,1)";
+
+				}
+				
+
+
+
+				if(showFastEvalLines){
+					ctx.lineWidth = 2;
+					var cnt = { x:canvas.width/2 , y:canvas.height/2 };
+					var v = { x:0, y:0 };
+					ctx.beginPath();
+					ctx.moveTo(cnt.x,cnt.y);
+					v = mulV2s( subV2(p0,cnt), eval_weight(0, t ) );
+					ctx.lineTo(v.x+cnt.x,v.y+cnt.y);
+					ctx.strokeStyle = cP0;
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.moveTo(v.x+cnt.x,v.y+cnt.y);
+					v = addV2(v,mulV2s( subV2(p1,cnt), eval_weight(1, t ) ) );
+					ctx.lineTo(v.x+cnt.x,v.y+cnt.y);
+					ctx.strokeStyle = cP1;
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.moveTo(v.x+cnt.x,v.y+cnt.y);
+					v = addV2(v,mulV2s( subV2(p2,cnt), eval_weight(2, t ) ) );
+					ctx.lineTo(v.x+cnt.x,v.y+cnt.y);
+					ctx.strokeStyle = cP2;
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.moveTo(v.x+cnt.x,v.y+cnt.y);
+					v = addV2(v,mulV2s( subV2(p3,cnt), eval_weight(3, t ) ) );
+					ctx.lineTo(v.x+cnt.x,v.y+cnt.y);
+					ctx.strokeStyle = cP3;
+					ctx.stroke();
+					ctx.lineWidth = 3;
+				}
+
+
+
+			}
+
+			function draw_bezier_path(ctx, t){
+
+				var a = lerpV2(p0,p1,t);
+				var b = lerpV2(p1,p2,t);
+				var c = lerpV2(p2,p3,t);
+				var d = lerpV2(a,b,t);
+				var e = lerpV2(b,c,t);
+				var pt = lerpV2(d,e,t);
+
+				//ctx.setLineDash([5])
+				ctx.beginPath();
+				ctx.moveTo(p0.x,p0.y);
+				// ctx.bezierCurveTo(p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);
+				ctx.bezierCurveTo(a.x,a.y,d.x,d.y,pt.x,pt.y);
+				ctx.stroke();
+				//ctx.setLineDash([])
+			}
+
+			function draw_bezier_border( ctx, mid ){
+				//ctx.beginPath();
+				//ctx.moveTo(p0.x,p0.y);
+				//ctx.lineTo(p1.x,p1.y);
+				//ctx.lineTo(p2.x,p2.y);
+				//ctx.lineTo(p3.x,p3.y);
+				//ctx.stroke();
+				ctx.strokeStyle = "rgba(64,64,64,1)";
+				ctx.beginPath();
+				ctx.moveTo(p0.x,p0.y);
+				ctx.lineTo(p1.x,p1.y);
+				ctx.stroke();
+				if(mid){
+					ctx.strokeStyle = "rgba(64,64,64,1)";
+					ctx.beginPath();
+					ctx.moveTo(p1.x,p1.y);
+					ctx.lineTo(p2.x,p2.y);
+					ctx.stroke();
+				}
+				ctx.strokeStyle = "rgba(64,64,64,1)";
+				ctx.beginPath();
+				ctx.moveTo(p2.x,p2.y);
+				ctx.lineTo(p3.x,p3.y);
+				ctx.stroke();
+			}
+
+			function draw_circle( ctx, p, radius){
+				ctx.beginPath();
+				ctx.arc(p.x, p.y, radius, 0, 2 * Math.PI, false);
+
+				ctx.fill();
+				//ctx.lineWidth = 5;
+				//ctx.strokeStyle = '#003300';
+				//ctx.stroke();
+			}
+
+			function stroke_circle( ctx, p, radius){
+				ctx.beginPath();
+				ctx.arc(p.x, p.y, radius, 0, 2 * Math.PI, false);
+				
+				ctx.stroke();
+			}
+
+			function DrawSpacer(ctx, t, radius){
+				// Calc points
+				var first = get_bezier_point_offset(t, radius);
+				var second = get_bezier_point_offset(t, -radius);
+
+				ctx.beginPath();
+				ctx.moveTo(first.x, first.y);
+				ctx.lineTo(second.x, second.y);
+				ctx.stroke();
+			}
+
+
+
+			Number.prototype.clamp = function(min, max) {
+				return Math.min(Math.max(this, min), max);
+			};
+			Number.prototype.clamp01 = function() {
+				return Math.min(Math.max(this, 0), 1);
+			};
+
+
+			function get_bezier_point( t ){
+				var a = lerpV2(p0,p1,t);
+				var b = lerpV2(p1,p2,t);
+				var c = lerpV2(p2,p3,t);
+				var d = lerpV2(a,b,t);
+				var e = lerpV2(b,c,t);
+				return lerpV2(d,e,t);
+			}
+
+			function get_bezier_point_offset( t, offset ){
+				var a = lerpV2(p0,p1,t);
+				var b = lerpV2(p1,p2,t);
+				var c = lerpV2(p2,p3,t);
+				var d = lerpV2(a,b,t);
+				var e = lerpV2(b,c,t);
+				var pt = lerpV2(d,e,t);
+
+				var binormal = rot90a(normalize(subV2(e,d)));
+				var bScaled = mulV2s(binormal, offset);
+
+				return addV2(pt, bScaled);
+			}
+
+			function getLabelOffset(origin, direction, distance, height_offset){
+
+				var heightMod = height_offset * (direction.y * 0.5 + 0.5);
+				var newPos = addV2( origin, mulV2s(direction, distance) );
+				newPos.y += heightMod;
+
+				return newPos;
+
+			}
+
+			function dotNrm(a,b){
+				return dot(a,b) * 0.5 + 0.5;
+			}
+
+			function distance(a,b){
+				var xDelta = a.x - b.x;
+				var yDelta = a.y - b.y;
+				return Math.sqrt( xDelta * xDelta + yDelta * yDelta );
+			}
+
+			function dot(a,b){
+				return a.x * b.x + a.y * b.y;
+			}
+
+			function dotTang(a,b){
+				return a.x * (b.y) + a.y * (-b.x);
+			}
+
+			function condDir(a,b){
+				if( dotTang(a,b) < 0){
+					return rot90a(a);
+				} else {
+					return rot90b(a);
+				}
+			}
+
+			function sumDir(a,b){
+				return normalize(addV2(a,b));
+			}
+
+			function rot90a(v){
+				return {x:-v.y, y:v.x};
+			}
+			function rot90b(v){
+				return {x:v.y, y:-v.x};
+			}
+
+			function addV2(a,b){
+				return {x:a.x+b.x,y:a.y+b.y};
+			}
+
+			function negV2(a){
+				return {x:-a.x,y:-a.y};
+			}
+
+			function normalize(a){
+				if(a.x == 0 && a.y == 0)
+					return a;
+				var dist = Math.sqrt(a.x*a.x+a.y*a.y);
+				return {x:a.x/dist,y:a.y/dist};
+			}
+
+			function sign(value){
+				if(value < 0)
+					return -1;
+				return 1;
+			}
+
+			function subV2(a,b){
+				return {x:a.x-b.x,y:a.y-b.y};
+			}
+
+			function mulV2s(vec,value){
+				return { x : vec.x*value, y : vec.y*value };
+			}
+
+			function eval_weight(i,t){
+				if(i == 0){
+					return Math.pow(1-t,3);
+				} else if(i == 1){
+					return t*3*Math.pow(1-t,2);
+				} else if(i == 2){
+					return 3*(1-t)*Math.pow(t,2);
+				} else if(i == 3){
+					return Math.pow(t,3);
+				}
+			}
+
+		
+
+			function lerp(a,b,t){
+				return (1-t)*a+t*b;
+			}
+
+			function lerpV2(a,b,t){
+				return { x: lerp(a.x,b.x,t), y: lerp(a.y,b.y,t) };
+			}
+
+		</script>
+	</head>
+
+	<body>
+
+		<div style="width:800px;margin:auto;display:table;">
+
+			<div style="display: table-row;">
+
+				<div style="display: table-cell;">
+
+					<div style="position:relative;overflow:auto;">
+						<canvas id="canvas" width="800" height="400" style="border:1px solid;border-color: #ddd;border-radius:5px"></canvas>
+						<div id="p0" class="drag_point"></div>
+						<div id="p1" class="drag_point"></div>
+						<div id="p2" class="drag_point"></div>
+						<div id="p3" class="drag_point"></div>
+					</div>
+
+					<div id="slider" style="width:760px;margin-left:15px;margin-right:15px;"></div>
+					<div style="text-align:center; line-height:2em">
+						<div class="t_indicator">
+							<div class="t_indicator_left">
+								t =
+							</div>
+							<div class="t_indicator_right">
+								 <span id="amount"></span>
+							</div>
+							
+						</div>
+					</div>
+					
+				</div>
+				
+				
+				<div style="display: table-cell;vertical-align:top;">
+					<!--<div style="padding:8px;margin:2px;width:250px;">
+						<span class="title">Cubic B&eacute;zier</span><br>
+						<ul style="list-style-type:disc">
+							<li>Move the slider below the curve to change t-value</li>
+							<li>You can drag around the 4 control points</li>
+						</ul>
+					</div>!-->
+					<div style="padding:8px;margin:2px;width:250px;">
+						<div style="padding:2px;margin:2px;">
+							<input type="checkbox" checked id="showLabels">Labels</input><br>
+							<input type="checkbox" checked id="showP1P2line">p1 to p2 line</input><br>
+							<input type="checkbox" checked id="showIntermediateLines">Intermediate elements</input><br>
+							&nbsp;&nbsp;<input type="checkbox" checked id="showLerpPointsLayer1" class="intermediate">Lerp points layer 1</input><br>
+							&nbsp;&nbsp;<input type="checkbox" checked id="showLerpLinesLayer1" class="intermediate">Lerp lines layer 1</input><br>
+							&nbsp;&nbsp;<input type="checkbox" checked id="showLerpPointsLayer2" class="intermediate">Lerp points layer 2</input><br>
+							&nbsp;&nbsp;<input type="checkbox" checked id="showLerpLinesLayer2" class="intermediate">Lerp lines layer 2</input><br>
+							<input type="checkbox" checked id="showMainPoint">Main point</input><br>
+							<input type="checkbox" checked id="showCurve">Curve</input><br>
+							&nbsp;&nbsp;<input type="checkbox" id="showPathSpacers" class="curveObject">Curve spacing</input><br>
+							<input type="checkbox" id="showQuadraticPaths">Quadratic paths</input><br>
+							<input type="checkbox" id="showFastEvalLines">Quick-evaluation vectors</input><br>
+							<br><a href="https://twitter.com/FreyaHolmer">@FreyaHolm&eacute;r</a>
+						</div>
+						
+						
+					</div>
+
+				</div>
+
+			</div> <!-- row -->
+
+			
+			
+		</div>
+
+	</body>
+
+</html>
