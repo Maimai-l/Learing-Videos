@@ -764,7 +764,7 @@ body {
 
 /* chapters: titles only; the current one is brighter */
 .tp-chlist {
-  max-height: 16rem;
+  max-height: calc(100cqh - var(--bar-gap) - 1.5rem); /* as tall as the picture allows; scrolls beyond that */
   margin: 0;
   padding: 0;
   list-style: none;
