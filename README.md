@@ -17,5 +17,5 @@ MP4 版（1080p、60 帧，字幕在画面里）在 Release `t-test-video` 里�
 ## 其它位置
 
 - 制作这个视频的源代码：分支 `claude/fervent-cray-lnh6av` 的 `t-test/` 目录，制作流程见 `t-test/docs/制作说明.md`。
-- 播放器：分支 `main` 的 `player/`。
+- 播放器：源代码分支里的 `player/`。
 - 配音和背景音乐的原始文件：Release `resources`。
