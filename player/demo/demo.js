@@ -152,7 +152,6 @@ function render(ctx, t, o) {
 
 startPlayer({
   title: '播放器示例',
-  subtitleHTML: '画布动画 · 章节 · 小题',
   duration: DURATION,
   width: W,
   height: H,
