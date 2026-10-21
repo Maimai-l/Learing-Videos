@@ -5,7 +5,7 @@
 | 目录 | 内容 |
 |---|---|
 | `player/` | 网页播放器：逐帧绘制的视频、章节、字幕、每节小题。可以单独使用，见 `player/README.md` |
-| `references/` | 参考资料：`writing.md` 是文案写作参考（3Blue1Brown 数学科普比赛的评审标准、写作建议、获奖作品拆解），`animation/` 是值得借鉴的动画源码和链接，`samples/` 是用我们的播放器把这些做法各做一节的小样 |
+| `references/` | 参考资料：`writing.md` 是文案写作参考（3Blue1Brown 数学科普比赛的评审标准、写作建议、获奖作品拆解），`links.md` 是每件获奖作品的文稿、讲义和中文版本链接，`animation/` 是值得借鉴的动画源码和链接，`samples/` 是用我们的播放器把这些做法各做一节的小样 |
 
 视频项目 `t-test/`（t 检验与自由度）目前在分支 `claude/fervent-cray-lnh6av` 上，那里也用这份播放器。
 

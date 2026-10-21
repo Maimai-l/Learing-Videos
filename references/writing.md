@@ -141,14 +141,15 @@ Grant 的四条标准，他说前两条最重要。
 - Relativity in Desmos（Mr Happy Face）<https://youtu.be/ccoBbOTf31k>
 - A trick for analyzing cubics（Dr PK Math）<https://youtu.be/mqdCKLipDiI>
 - The world's oldest algorithm（Eric Rowland）<https://youtu.be/6OgDTCG1QCU>
-- The science of complexity（文章）<https://www.mecanicascience.fr/articles/science_of_complexity>
+- The science of complexity（文章）<https://www.explorablescience.com/articles/science_of_complexity>
 
 **SoME5（2026）** 同行评审中，还没有公布获奖。
 
 ## 没有覆盖的
 
-- **视频类获奖作品的文案。** YouTube 拒绝这台云端机器访问，拿不到字幕。把字幕文件放进 `references/` 后可以补上分析。
-- **How Computers Use Numbers 和 The science of complexity。** 两个网站从这里都打不开。
+- **视频类获奖作品的写法分析。** 写这份文档时还拿不到字幕；后来找到了读字幕和转写全文的办法，
+  每件作品的文稿、讲义、中文版本链接见 `links.md`，可以照着补分析。
+- **How Computers Use Numbers 和 The science of complexity 的写法分析。** 当时两个网站打不开，现在的地址和正文源文件也在 `links.md`。
 
 ## 出处
 

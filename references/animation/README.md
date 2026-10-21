@@ -57,7 +57,7 @@ SoME3 获奖作品，讲计算机怎么表示数。
 SoME4 教师奖作品，讲简单的个体规则怎样产生整体行为。
 
 - 源码：<https://github.com/MecanicaScience/website> 的 `app/(core)/articles/(2025)/science_of_complexity/`
-- 作品：<https://www.mecanicascience.fr/articles/science_of_complexity>
+- 作品：<https://www.explorablescience.com/articles/science_of_complexity>
 - 看 `simulations/`：伊辛模型、萤火虫同步（Kuramoto 模型）、鱼群等模拟，Canvas 加 three.js。
 
 ## Cayley Graphs and Pretty Things
